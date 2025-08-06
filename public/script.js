@@ -236,6 +236,12 @@ function goToStep3() {
     // Update chart
     addTaskToChart(wizardData, results);
     
+    // Clean any invalid data points from chart after adding new data
+    setTimeout(() => {
+        cleanChartData();
+        if (taskChart) taskChart.update('none');
+    }, 50);
+    
     // Update Step 3 summary
     document.getElementById('finalTaskSummary').textContent = wizardData.taskName;
     
@@ -380,15 +386,28 @@ function updateWizardDataFromStep3() {
  */
 function updateTaskInChart(taskData, roiData) {
     if (!taskChart || !taskChart.data.datasets[0].data.length) {
-        // If no existing data, add new point
+        // If no existing data, add new point (with validation)
         addTaskToChart(taskData, roiData);
         return;
     }
     
     // Get complexity and maturity scores
     const complexityMap = { 'Very Low': 1, 'Low': 2, 'Medium': 3, 'High': 4, 'Very High': 5 };
-    const complexityScore = complexityMap[taskData.taskComplexityScore] || 3;
-    const maturityScore = complexityMap[taskData.currentActionMaturityScore] || 3;
+    const complexityScore = complexityMap[taskData.taskComplexityScore];
+    const maturityScore = complexityMap[taskData.currentActionMaturityScore];
+    
+    // Fix: Validate scores before updating chart
+    // Do not update if we don't have valid scores
+    if (!complexityScore || !maturityScore || 
+        isNaN(complexityScore) || isNaN(maturityScore)) {
+        console.log('Skipping chart update - invalid scores:', {
+            complexityScore,
+            maturityScore,
+            complexityInput: taskData.taskComplexityScore,
+            maturityInput: taskData.currentActionMaturityScore
+        });
+        return;
+    }
     
     // Update the last (most recent) data point
     const dataIndex = taskChart.data.datasets[0].data.length - 1;
@@ -1506,6 +1525,40 @@ const axisEdgeLabelsPlugin = {
 };
 
 /**
+ * Clean invalid data points from chart dataset
+ * Removes any points with null, undefined, 0, or NaN coordinates
+ */
+function cleanChartData() {
+    if (!taskChart || !taskChart.data.datasets[0]) return;
+    
+    const dataset = taskChart.data.datasets[0];
+    const validIndices = [];
+    
+    // Find indices of valid data points
+    dataset.data.forEach((point, index) => {
+        if (point && point.x && point.y && 
+            !isNaN(point.x) && !isNaN(point.y) &&
+            point.x > 0 && point.y > 0) {
+            validIndices.push(index);
+        } else {
+            console.log('Removing invalid chart point:', point);
+        }
+    });
+    
+    // Filter all arrays to keep only valid points
+    dataset.data = validIndices.map(i => dataset.data[i]);
+    dataset.backgroundColor = validIndices.map(i => dataset.backgroundColor[i] || 'rgba(147, 51, 234, 0.8)');
+    dataset.borderColor = validIndices.map(i => dataset.borderColor[i] || 'rgba(147, 51, 234, 1)');
+    dataset.pointRadius = validIndices.map(i => dataset.pointRadius[i] || 8);
+    dataset.pointHoverRadius = validIndices.map(i => dataset.pointHoverRadius[i] || 11);
+    
+    // Also clean the taskDataPoints array
+    taskDataPoints = validIndices.map(i => taskDataPoints[i]).filter(Boolean);
+    
+    console.log('Chart data cleaned. Valid points remaining:', dataset.data.length);
+}
+
+/**
  * Initialize the scatter chart with ROI quadrant matrix and enhanced axis labels
  */
 function initializeChart() {
@@ -1641,11 +1694,18 @@ function initializeChart() {
             }
         }
     });
+    
+    // Clean any invalid data points after initialization
+    setTimeout(() => {
+        cleanChartData();
+        taskChart.update('none');
+    }, 100);
 }
 
 /**
  * Add task data point to chart
  * New points are added dynamically when users complete Step 2
+ * Fixed: Added validation to prevent unwanted center points from null/undefined data
  */
 function addTaskToChart(formData, results) {
     // Convert qualitative scores to numeric values for plotting
@@ -1656,6 +1716,21 @@ function addTaskToChart(formData, results) {
     const maturityScore = qualitativeToNumeric[formData.currentActionMaturityScore];
     const complexityScore = qualitativeToNumeric[formData.taskComplexityScore];
     
+    // Fix: Validate that we have real data before creating a point
+    // Do not render points if x or y values are null, undefined, 0, or NaN
+    if (!maturityScore || !complexityScore || 
+        isNaN(maturityScore) || isNaN(complexityScore) ||
+        !formData.taskName || formData.taskName.trim() === '') {
+        console.log('Skipping chart point - invalid data:', {
+            maturityScore,
+            complexityScore,
+            taskName: formData.taskName,
+            maturityInput: formData.currentActionMaturityScore,
+            complexityInput: formData.taskComplexityScore
+        });
+        return; // Exit early if data is invalid
+    }
+    
     // Create data point for the quadrant matrix
     const dataPoint = {
         x: maturityScore,
@@ -1665,6 +1740,9 @@ function addTaskToChart(formData, results) {
         timeSavings: results.potential.timeSavings || results.timeSavings,
         costSavings: results.potential.costSavings || results.costSavings
     };
+    
+    // Debug: Log the dataset being passed to the chart
+    console.log('Adding valid data point to chart:', dataPoint);
     
     // Store data point for tooltip reference
     taskDataPoints.push(dataPoint);
@@ -1680,6 +1758,12 @@ function addTaskToChart(formData, results) {
     taskChart.data.datasets[0].borderColor.push(borderColor);
     taskChart.data.datasets[0].pointRadius.push(pointRadius);
     taskChart.data.datasets[0].pointHoverRadius.push(pointRadius + 3);
+    
+    // Debug: Log the current dataset after adding point
+    console.log('Chart dataset after adding point:', {
+        totalPoints: taskChart.data.datasets[0].data.length,
+        dataPoints: taskChart.data.datasets[0].data
+    });
     
     // Update chart to show new point
     taskChart.update('none'); // 'none' for no animation for better performance
