@@ -256,6 +256,16 @@
                             <p class="text-sm text-gray-500 mt-1">How long does it typically take to complete this task manually?</p>
                         </div>
 
+                        <!-- Number of Users -->
+                        <div>
+                            <label for="numUsers" class="block text-sm font-medium text-gray-700 mb-2">
+                                Number of Users *
+                            </label>
+                            <input type="number" id="numUsers" placeholder="10" min="1" step="1"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <p class="text-sm text-gray-500 mt-1">How many people currently perform this task in your organization?</p>
+                        </div>
+
                         <!-- Expected Time Savings with AI -->
                         <div>
                             <label for="expectedTimeSavings" class="block text-sm font-medium text-gray-700 mb-2">
@@ -321,20 +331,13 @@
                     </div>
 
                     <div>
-                                    <label for="numSellers" class="block text-sm font-medium text-gray-700 mb-2">Number of Users/People</label>
-                                    <input type="number" id="numSellers" placeholder="10" min="1" step="1"
-                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    <p class="mt-1 text-xs text-gray-500">How many people currently perform this task in your organization</p>
-                    </div>
-
-                    <div>
                         <label for="devCost" class="block text-sm font-medium text-gray-700 mb-2">Development Cost ($)</label>
                         <input type="number" id="devCost" placeholder="10000" min="0" step="0.01"
                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                     <p class="mt-1 text-xs text-gray-500">Estimated cost to develop the AI solution</p>
                     </div>
 
-                    <div>
+                    <div class="md:col-span-2">
                                     <label for="maintenanceCost" class="block text-sm font-medium text-gray-700 mb-2">Annual Maintenance ($)</label>
                         <input type="number" id="maintenanceCost" placeholder="2000" min="0" step="0.01"
                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -404,6 +407,15 @@
                                         Median Human Time on Task (minutes) *
                                     </label>
                                     <input type="number" id="step3MedianTime" placeholder="15" min="1" step="1"
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                                <!-- Number of Users -->
+                                <div>
+                                    <label for="step3NumUsers" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Number of Users *
+                                    </label>
+                                    <input type="number" id="step3NumUsers" placeholder="10" min="1" step="1"
                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
 

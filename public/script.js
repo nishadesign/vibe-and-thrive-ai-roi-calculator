@@ -101,8 +101,8 @@ function initializeEventListeners() {
     step2NextBtn.addEventListener('click', goToStep3);
     
     // Step 2 form validation
-    const step2RequiredFields = ['taskFrequency', 'medianTime', 'taskComplexityScore', 'currentActionMaturityScore'];
-    const step2OptionalFields = ['hourlyRate', 'numSellers', 'devCost', 'maintenanceCost'];
+    const step2RequiredFields = ['taskFrequency', 'medianTime', 'numUsers', 'taskComplexityScore', 'currentActionMaturityScore'];
+    const step2OptionalFields = ['hourlyRate', 'devCost', 'maintenanceCost'];
     
     // Add listeners for required fields
     step2RequiredFields.forEach(fieldId => {
@@ -148,9 +148,9 @@ function validateStep1() {
  * Step 2: Validate ROI input fields
  */
 function validateStep2() {
-    // Required fields (time and complexity/maturity are required)
+    // Required fields (includes numUsers as required)
     const requiredFields = [
-        'taskFrequency', 'medianTime', 'taskComplexityScore', 
+        'taskFrequency', 'medianTime', 'numUsers', 'taskComplexityScore', 
         'currentActionMaturityScore'
     ];
     
@@ -166,7 +166,7 @@ function validateStep2() {
     }
     
     // Optional cost fields - validate if provided
-    const optionalFields = ['hourlyRate', 'numSellers', 'devCost', 'maintenanceCost'];
+    const optionalFields = ['hourlyRate', 'devCost', 'maintenanceCost'];
     
     for (const fieldId of optionalFields) {
         const field = document.getElementById(fieldId);
@@ -322,12 +322,12 @@ function populateStep3Inputs() {
     document.getElementById('step3TaskFrequency').value = wizardData.taskFrequency || '';
     document.getElementById('step3FrequencyUnit').value = wizardData.frequencyUnit || 'per day';
     document.getElementById('step3MedianTime').value = wizardData.medianTime || '';
+    document.getElementById('step3NumUsers').value = wizardData.numUsers || '';
     document.getElementById('step3TaskComplexityScore').value = wizardData.taskComplexityScore || '';
     document.getElementById('step3CurrentActionMaturityScore').value = wizardData.currentActionMaturityScore || '';
     
     // Populate cost fields
     document.getElementById('step3HourlyRate').value = wizardData.hourlyRate || '';
-    document.getElementById('step3NumSellers').value = wizardData.numSellers || '';
     document.getElementById('step3DevCost').value = wizardData.devCost || '';
     document.getElementById('step3MaintenanceCost').value = wizardData.maintenanceCost || '';
 }
@@ -338,9 +338,9 @@ function populateStep3Inputs() {
 function initializeStep3Updates() {
     // Get all Step 3 input elements
     const step3Inputs = [
-        'step3TaskFrequency', 'step3FrequencyUnit', 'step3MedianTime',
+        'step3TaskFrequency', 'step3FrequencyUnit', 'step3MedianTime', 'step3NumUsers',
         'step3TaskComplexityScore', 'step3CurrentActionMaturityScore',
-        'step3HourlyRate', 'step3NumSellers', 'step3DevCost', 'step3MaintenanceCost'
+        'step3HourlyRate', 'step3DevCost', 'step3MaintenanceCost'
     ];
     
     // Add event listeners for real-time updates
@@ -379,12 +379,12 @@ function updateWizardDataFromStep3() {
     wizardData.taskFrequency = parseFloat(document.getElementById('step3TaskFrequency').value) || 0;
     wizardData.frequencyUnit = document.getElementById('step3FrequencyUnit').value || 'per day';
     wizardData.medianTime = parseFloat(document.getElementById('step3MedianTime').value) || 0;
+    wizardData.numUsers = parseFloat(document.getElementById('step3NumUsers').value) || 0;
     wizardData.taskComplexityScore = document.getElementById('step3TaskComplexityScore').value || '';
     wizardData.currentActionMaturityScore = document.getElementById('step3CurrentActionMaturityScore').value || '';
     
     // Update cost fields
     wizardData.hourlyRate = parseFloat(document.getElementById('step3HourlyRate').value) || 0;
-    wizardData.numSellers = parseFloat(document.getElementById('step3NumSellers').value) || 0;
     wizardData.devCost = parseFloat(document.getElementById('step3DevCost').value) || 0;
     wizardData.maintenanceCost = parseFloat(document.getElementById('step3MaintenanceCost').value) || 0;
 }
@@ -1148,6 +1148,7 @@ function collectStep2Data() {
     wizardData.taskFrequency = parseFloat(document.getElementById('taskFrequency').value);
     wizardData.frequencyUnit = document.getElementById('frequencyUnit').value;
     wizardData.medianTime = parseFloat(document.getElementById('medianTime').value);
+    wizardData.numUsers = parseFloat(document.getElementById('numUsers').value); // Required field
     wizardData.taskComplexityScore = document.getElementById('taskComplexityScore').value;
     wizardData.currentActionMaturityScore = document.getElementById('currentActionMaturityScore').value;
     
@@ -1156,7 +1157,6 @@ function collectStep2Data() {
     
     // Optional cost fields with default values
     wizardData.hourlyRate = parseFloat(document.getElementById('hourlyRate').value) || 50; // Default $50/hour
-    wizardData.numSellers = parseFloat(document.getElementById('numSellers').value) || 1; // Default 1 person
     wizardData.devCost = parseFloat(document.getElementById('devCost').value) || 0; // Default $0
     wizardData.maintenanceCost = parseFloat(document.getElementById('maintenanceCost').value) || 0; // Default $0
 }
@@ -1182,7 +1182,7 @@ function calculateROI() {
     // CURRENT SCENARIO (Conservative automation benefits)
     // Assume current AI tools provide 20-40% efficiency gains
     const currentEfficiencyGain = 0.30; // 30% baseline efficiency
-    const currentTimeSavings = timeSavingsPerTask * annualFrequency * wizardData.numSellers * currentEfficiencyGain;
+    const currentTimeSavings = timeSavingsPerTask * annualFrequency * wizardData.numUsers * currentEfficiencyGain;
     const currentCostSavings = currentTimeSavings * wizardData.hourlyRate;
     const currentAgentROI = totalCosts > 0 ? ((currentCostSavings - totalCosts) / totalCosts) * 100 : 0;
     const currentOrgROI = currentCostSavings > 0 ? ((currentCostSavings - totalCosts) / currentCostSavings) * 100 : 0;
@@ -1190,7 +1190,7 @@ function calculateROI() {
     // POTENTIAL SCENARIO (Optimized automation based on complexity and maturity)
     // Calculate potential efficiency based on task complexity and action maturity
     const potentialEfficiencyGain = calculatePotentialEfficiency(complexityScore, maturityScore);
-    const potentialTimeSavings = timeSavingsPerTask * annualFrequency * wizardData.numSellers * potentialEfficiencyGain;
+    const potentialTimeSavings = timeSavingsPerTask * annualFrequency * wizardData.numUsers * potentialEfficiencyGain;
     const potentialCostSavings = potentialTimeSavings * wizardData.hourlyRate;
     const potentialAgentROI = totalCosts > 0 ? ((potentialCostSavings - totalCosts) / totalCosts) * 100 : 0;
     const potentialOrgROI = potentialCostSavings > 0 ? ((potentialCostSavings - totalCosts) / potentialCostSavings) * 100 : 0;
