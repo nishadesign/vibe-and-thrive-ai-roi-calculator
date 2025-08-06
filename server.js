@@ -23,8 +23,14 @@ let generativeModel = null;
 
 if (process.env.GOOGLE_CLOUD_PROJECT_ID) {
   try {
+    console.log('Initializing Vertex AI...');
+    console.log('Project ID:', process.env.GOOGLE_CLOUD_PROJECT_ID);
+    console.log('Location:', process.env.GOOGLE_CLOUD_LOCATION || 'us-central1');
+    console.log('Has base64 credentials:', !!process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64);
+    
     // Handle base64 encoded credentials for Vercel deployment
     if (process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64) {
+      console.log('Using base64 encoded credentials for Vercel...');
       const credentials = JSON.parse(
         Buffer.from(process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64, 'base64').toString()
       );
@@ -38,6 +44,7 @@ if (process.env.GOOGLE_CLOUD_PROJECT_ID) {
       });
     } else {
       // Fallback to local development with file path
+      console.log('Using local credentials file...');
       vertexAI = new VertexAI({
         project: process.env.GOOGLE_CLOUD_PROJECT_ID,
         location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
@@ -225,9 +232,15 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
 });
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-  console.log(`OpenAI API Key configured: ${process.env.OPENAI_API_KEY ? 'Yes' : 'No'}`);
-  console.log(`Vertex AI Project configured: ${process.env.GOOGLE_CLOUD_PROJECT_ID ? 'Yes' : 'No'}`);
-  console.log(`Vertex AI Gemini available: ${generativeModel ? 'Yes' : 'No'}`);
-}); 
+// For Vercel serverless deployment
+if (process.env.VERCEL) {
+  module.exports = app;
+} else {
+  // For local development
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+    console.log(`OpenAI API Key configured: ${process.env.OPENAI_API_KEY ? 'Yes' : 'No'}`);
+    console.log(`Vertex AI Project configured: ${process.env.GOOGLE_CLOUD_PROJECT_ID ? 'Yes' : 'No'}`);
+    console.log(`Vertex AI Gemini available: ${generativeModel ? 'Yes' : 'No'}`);
+  });
+} 
