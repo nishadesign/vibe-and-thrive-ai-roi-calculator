@@ -1453,13 +1453,67 @@ const roiQuadrantPlugin = {
 };
 
 /**
- * Initialize the scatter chart with ROI quadrant matrix
+ * Custom Chart.js plugin to add edge labels (Very Low/Very High) outside grid area
+ * These labels appear at the extremes of each axis for better context
+ */
+const axisEdgeLabelsPlugin = {
+    id: 'axisEdgeLabels',
+    afterDraw: function(chart) {
+        const ctx = chart.ctx;
+        const chartArea = chart.chartArea;
+        
+        // Save the current context state
+        ctx.save();
+        
+        // Configure text styling for edge labels
+        ctx.fillStyle = '#666666'; // Subtle gray color as requested (#666)
+        ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textBaseline = 'middle';
+        
+        // X-axis edge labels (Very Low on left, Very High on right)
+        const xLabelY = chartArea.bottom + 30; // Position below the chart area, outside grid
+        
+        // "Very Low" on the left edge of X-axis
+        ctx.textAlign = 'left';
+        ctx.fillText('Very Low', chartArea.left, xLabelY);
+        
+        // "Very High" on the right edge of X-axis  
+        ctx.textAlign = 'right';
+        ctx.fillText('Very High', chartArea.right, xLabelY);
+        
+        // Y-axis edge labels (Very Low at bottom, Very High at top)
+        const yLabelX = chartArea.left - 30; // Position to the left of the chart area, outside grid
+        
+        // "Very Low" at the bottom of Y-axis (rotated)
+        ctx.save();
+        ctx.translate(yLabelX, chartArea.bottom);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = 'left';
+        ctx.fillText('Very Low', 0, 0);
+        ctx.restore();
+        
+        // "Very High" at the top of Y-axis (rotated)
+        ctx.save();
+        ctx.translate(yLabelX, chartArea.top);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = 'right';
+        ctx.fillText('Very High', 0, 0);
+        ctx.restore();
+        
+        // Restore the context state
+        ctx.restore();
+    }
+};
+
+/**
+ * Initialize the scatter chart with ROI quadrant matrix and enhanced axis labels
  */
 function initializeChart() {
     const ctx = document.getElementById('taskScatterChart').getContext('2d');
     
-    // Register the custom quadrant plugin
+    // Register the custom plugins
     Chart.register(roiQuadrantPlugin);
+    Chart.register(axisEdgeLabelsPlugin);
     
     taskChart = new Chart(ctx, {
         type: 'scatter',
@@ -1476,6 +1530,14 @@ function initializeChart() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    left: 50,    // Extra space for Y-axis edge labels
+                    right: 10,   // Small buffer on the right
+                    top: 10,     // Small buffer on the top  
+                    bottom: 50   // Extra space for X-axis edge labels
+                }
+            },
             scales: {
                 x: {
                     type: 'linear',
