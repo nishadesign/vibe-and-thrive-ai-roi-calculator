@@ -43,6 +43,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeChart();
     initializePDFDownload(); // Initialize PDF download functionality
     updateProgressIndicator();
+    
+    // Ensure chart starts completely empty
+    setTimeout(() => {
+        clearChart();
+    }, 200);
 });
 
 /**
@@ -301,6 +306,9 @@ function restartWizard() {
     
     // Hide AI insights section
     hideAIInsights();
+    
+    // Clear the chart of all data points
+    clearChart();
     
     // Go back to step 1
     goToStep1();
@@ -1527,6 +1535,7 @@ const axisEdgeLabelsPlugin = {
 /**
  * Clean invalid data points from chart dataset
  * Removes any points with null, undefined, 0, or NaN coordinates
+ * Enhanced to be more aggressive about removing any unwanted points
  */
 function cleanChartData() {
     if (!taskChart || !taskChart.data.datasets[0]) return;
@@ -1534,14 +1543,28 @@ function cleanChartData() {
     const dataset = taskChart.data.datasets[0];
     const validIndices = [];
     
-    // Find indices of valid data points
+    console.log('Cleaning chart data. Current points:', dataset.data);
+    
+    // Find indices of valid data points with stricter validation
     dataset.data.forEach((point, index) => {
-        if (point && point.x && point.y && 
+        // More strict validation: point must have valid coordinates AND a task name
+        const correspondingTaskData = taskDataPoints[index];
+        if (point && 
+            point.x && point.y && 
             !isNaN(point.x) && !isNaN(point.y) &&
-            point.x > 0 && point.y > 0) {
+            point.x >= 1 && point.x <= 5 &&  // Must be within valid range
+            point.y >= 1 && point.y <= 5 &&  // Must be within valid range
+            correspondingTaskData && 
+            correspondingTaskData.taskName && 
+            correspondingTaskData.taskName.trim() !== '') {
             validIndices.push(index);
+            console.log('Keeping valid chart point:', point, correspondingTaskData);
         } else {
-            console.log('Removing invalid chart point:', point);
+            console.log('Removing invalid chart point:', {
+                point: point,
+                taskData: correspondingTaskData,
+                reason: 'Missing task data or coordinates out of range'
+            });
         }
     });
     
@@ -1556,6 +1579,32 @@ function cleanChartData() {
     taskDataPoints = validIndices.map(i => taskDataPoints[i]).filter(Boolean);
     
     console.log('Chart data cleaned. Valid points remaining:', dataset.data.length);
+    console.log('Remaining points:', dataset.data);
+}
+
+/**
+ * Completely clear the chart of all data points
+ * Use this to ensure the chart starts completely empty
+ */
+function clearChart() {
+    if (!taskChart || !taskChart.data.datasets[0]) return;
+    
+    console.log('Completely clearing chart data');
+    
+    // Clear all data arrays
+    taskChart.data.datasets[0].data = [];
+    taskChart.data.datasets[0].backgroundColor = [];
+    taskChart.data.datasets[0].borderColor = [];
+    taskChart.data.datasets[0].pointRadius = [];
+    taskChart.data.datasets[0].pointHoverRadius = [];
+    
+    // Clear the task data points array
+    taskDataPoints = [];
+    
+    console.log('Chart completely cleared');
+    
+    // Update the chart to reflect changes
+    taskChart.update('none');
 }
 
 /**
@@ -1695,10 +1744,33 @@ function initializeChart() {
         }
     });
     
+    // Debug: Log initial chart state
+    console.log('Chart initialized with data:', {
+        dataPoints: taskChart.data.datasets[0].data,
+        totalPoints: taskChart.data.datasets[0].data.length
+    });
+    
+    // Force clear any unwanted data points and ensure chart starts empty
+    taskChart.data.datasets[0].data = [];
+    taskChart.data.datasets[0].backgroundColor = [];
+    taskChart.data.datasets[0].borderColor = [];
+    taskChart.data.datasets[0].pointRadius = [];
+    taskChart.data.datasets[0].pointHoverRadius = [];
+    taskDataPoints = [];
+    
+    console.log('Chart data forcibly cleared. Current state:', {
+        dataPoints: taskChart.data.datasets[0].data,
+        totalPoints: taskChart.data.datasets[0].data.length
+    });
+    
     // Clean any invalid data points after initialization
     setTimeout(() => {
         cleanChartData();
         taskChart.update('none');
+        console.log('Chart after cleanup:', {
+            dataPoints: taskChart.data.datasets[0].data,
+            totalPoints: taskChart.data.datasets[0].data.length
+        });
     }, 100);
 }
 
