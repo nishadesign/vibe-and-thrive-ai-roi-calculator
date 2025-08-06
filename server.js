@@ -23,10 +23,26 @@ let generativeModel = null;
 
 if (process.env.GOOGLE_CLOUD_PROJECT_ID) {
   try {
-    vertexAI = new VertexAI({
-      project: process.env.GOOGLE_CLOUD_PROJECT_ID,
-      location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
-    });
+    // Handle base64 encoded credentials for Vercel deployment
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64) {
+      const credentials = JSON.parse(
+        Buffer.from(process.env.GOOGLE_APPLICATION_CREDENTIALS_BASE64, 'base64').toString()
+      );
+      
+      vertexAI = new VertexAI({
+        project: process.env.GOOGLE_CLOUD_PROJECT_ID,
+        location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
+        googleAuthOptions: {
+          credentials: credentials
+        }
+      });
+    } else {
+      // Fallback to local development with file path
+      vertexAI = new VertexAI({
+        project: process.env.GOOGLE_CLOUD_PROJECT_ID,
+        location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
+      });
+    }
 
     // Initialize the Gemini model
     const model = 'gemini-pro';
