@@ -2616,45 +2616,72 @@ async function generateSimplePDFReport() {
  * Fills in all the text fields and data points for the report
  */
 async function populatePDFTemplate() {
+    // Ensure wizardData exists
+    if (typeof wizardData === 'undefined') {
+        console.warn('wizardData not available, using default values');
+        window.wizardData = {
+            taskName: '', taskPerformer: '', taskComplexityScore: '', currentActionMaturityScore: ''
+        };
+    }
+    
     // Set generation date
     const now = new Date();
-    document.getElementById('pdf-generation-date').textContent = now.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+    const dateElement = document.getElementById('pdf-generation-date');
+    if (dateElement) {
+        dateElement.textContent = now.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
 
-    // Populate task information
-    document.getElementById('pdf-task-name').textContent = 
-        conversationState.taskName || document.getElementById('taskNameInput')?.value || 'Not specified';
+    // Populate task information with null checks
+    const pdfTaskName = document.getElementById('pdf-task-name');
+    if (pdfTaskName) {
+        pdfTaskName.textContent = wizardData.taskName || document.getElementById('taskName')?.value || 'Not specified';
+    }
     
-    document.getElementById('pdf-task-performer').textContent = 
-        conversationState.taskPerformer || document.getElementById('taskPerformerSelect')?.value || 'Not specified';
+    const pdfTaskPerformer = document.getElementById('pdf-task-performer');
+    if (pdfTaskPerformer) {
+        pdfTaskPerformer.textContent = wizardData.taskPerformer || document.getElementById('taskPerformer')?.value || 'Not specified';
+    }
 
     // Get complexity and maturity scores
-    const complexityScore = document.getElementById('taskComplexitySelect')?.value || 'Not assessed';
-    const maturityScore = document.getElementById('actionMaturitySelect')?.value || 'Not assessed';
+    const complexityScore = wizardData.taskComplexityScore || document.getElementById('taskComplexityScore')?.value || 'Not assessed';
+    const maturityScore = wizardData.currentActionMaturityScore || document.getElementById('currentActionMaturityScore')?.value || 'Not assessed';
     
-    document.getElementById('pdf-task-complexity').textContent = 
-        `${complexityScore} ${getComplexityLabel(complexityScore)}`;
+    const pdfTaskComplexity = document.getElementById('pdf-task-complexity');
+    if (pdfTaskComplexity) {
+        pdfTaskComplexity.textContent = `${complexityScore} ${getComplexityLabel(complexityScore)}`;
+    }
     
-    document.getElementById('pdf-action-maturity').textContent = 
-        `${maturityScore} ${getMaturityLabel(maturityScore)}`;
+    const pdfActionMaturity = document.getElementById('pdf-action-maturity');
+    if (pdfActionMaturity) {
+        pdfActionMaturity.textContent = `${maturityScore} ${getMaturityLabel(maturityScore)}`;
+    }
 
-    // Copy ROI metrics from the main results
-    document.getElementById('pdf-time-savings').textContent = 
-        document.getElementById('timeSavings')?.textContent || '-';
+    // Copy ROI metrics from the main results with null checks
+    const pdfTimeSavings = document.getElementById('pdf-time-savings');
+    if (pdfTimeSavings) {
+        pdfTimeSavings.textContent = document.getElementById('timeSavings')?.textContent || '-';
+    }
     
-    document.getElementById('pdf-cost-savings').textContent = 
-        document.getElementById('costSavings')?.textContent || '-';
+    const pdfCostSavings = document.getElementById('pdf-cost-savings');
+    if (pdfCostSavings) {
+        pdfCostSavings.textContent = document.getElementById('costSavings')?.textContent || '-';
+    }
     
-    document.getElementById('pdf-agent-roi').textContent = 
-        document.getElementById('agentROI')?.textContent || '-';
+    const pdfAgentRoi = document.getElementById('pdf-agent-roi');
+    if (pdfAgentRoi) {
+        pdfAgentRoi.textContent = document.getElementById('agentROI')?.textContent || '-';
+    }
     
-    document.getElementById('pdf-org-roi').textContent = 
-        document.getElementById('orgROI')?.textContent || '-';
+    const pdfOrgRoi = document.getElementById('pdf-org-roi');
+    if (pdfOrgRoi) {
+        pdfOrgRoi.textContent = document.getElementById('orgROI')?.textContent || '-';
+    }
 
     // Generate recommendations based on ROI scores
     generateRecommendations();
