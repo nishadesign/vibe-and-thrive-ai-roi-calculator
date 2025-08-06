@@ -2421,6 +2421,18 @@ async function generatePDFReport() {
             return;
         }
         
+        // Debug: Try the simplest possible PDF first
+        const debugSuccess = await debugPDFGeneration();
+        if (debugSuccess) {
+            return;
+        }
+        
+        // Try simple approach first - capture the visible ROI results
+        const simplePdfSuccess = await trySimplePDFGeneration();
+        if (simplePdfSuccess) {
+            return;
+        }
+        
         // Show loading state on button
         const downloadBtn = document.getElementById('download-report-btn');
         if (!downloadBtn) {
@@ -2543,6 +2555,175 @@ async function generatePDFReport() {
         
         // Show error message with more details
         showError(`Failed to generate PDF report: ${error.message}`);
+    }
+}
+
+/**
+ * Debug PDF generation with the simplest possible content
+ * This helps identify if the issue is with html2pdf or our content
+ */
+async function debugPDFGeneration() {
+    try {
+        console.log('DEBUG: Testing basic PDF generation...');
+        
+        // Create the simplest possible content
+        const testContainer = document.createElement('div');
+        testContainer.style.position = 'absolute';
+        testContainer.style.left = '-9999px';
+        testContainer.style.width = '600px';
+        testContainer.style.height = '400px';
+        testContainer.style.backgroundColor = 'white';
+        testContainer.style.padding = '20px';
+        testContainer.style.fontFamily = 'Arial, sans-serif';
+        
+        testContainer.innerHTML = `
+            <h1>TEST PDF GENERATION</h1>
+            <p>This is a test to verify html2pdf is working.</p>
+            <p>Generated at: ${new Date().toLocaleString()}</p>
+            <div style="background: blue; color: white; padding: 10px; margin: 10px 0;">
+                Blue box to test styling
+            </div>
+        `;
+        
+        document.body.appendChild(testContainer);
+        
+        await html2pdf()
+            .from(testContainer)
+            .set({
+                margin: 0.5,
+                filename: 'debug-test.pdf',
+                html2canvas: { scale: 1 },
+                jsPDF: { format: 'a4', orientation: 'portrait' }
+            })
+            .save();
+        
+        document.body.removeChild(testContainer);
+        
+        console.log('DEBUG: Basic PDF generation successful!');
+        showSuccessMessage('Debug PDF generated successfully! html2pdf is working.');
+        
+        // Restore button
+        const downloadBtn = document.getElementById('download-report-btn');
+        if (downloadBtn) {
+            downloadBtn.innerHTML = `
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Download Report
+            `;
+            downloadBtn.disabled = false;
+        }
+        
+        return true;
+        
+    } catch (error) {
+        console.error('DEBUG: Basic PDF generation failed:', error);
+        return false;
+    }
+}
+
+/**
+ * Try simple PDF generation by capturing the visible Step 3 content
+ * This approach captures what the user actually sees
+ */
+async function trySimplePDFGeneration() {
+    try {
+        console.log('Attempting simple PDF generation from visible content...');
+        
+        // Find the Step 3 content area
+        const step3Element = document.getElementById('step3');
+        if (!step3Element || step3Element.classList.contains('hidden')) {
+            console.log('Step 3 not visible, trying complex template approach...');
+            return false;
+        }
+        
+        // Create a temporary container with just the ROI analysis content
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '0px';
+        tempContainer.style.width = '800px';
+        tempContainer.style.background = 'white';
+        tempContainer.style.padding = '20px';
+        tempContainer.style.fontFamily = 'Arial, sans-serif';
+        
+        // Add title and current date
+        const now = new Date();
+        tempContainer.innerHTML = `
+            <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #6366f1; padding-bottom: 20px;">
+                <h1 style="color: #6366f1; margin: 0; font-size: 24px;">ROI 7: licensed to quantify™</h1>
+                <h2 style="color: #4b5563; margin: 10px 0 0 0; font-size: 18px;">AI Automation ROI Analysis</h2>
+                <p style="color: #6b7280; margin: 10px 0 0 0; font-size: 12px;">Generated on ${now.toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                })}</p>
+            </div>
+        `;
+        
+        // Clone the visible ROI results content
+        const roiResults = step3Element.querySelector('.bg-white.rounded-lg.shadow-lg');
+        if (roiResults) {
+            const clonedResults = roiResults.cloneNode(true);
+            // Remove any interactive elements
+            const buttons = clonedResults.querySelectorAll('button');
+            buttons.forEach(btn => btn.remove());
+            
+            tempContainer.appendChild(clonedResults);
+        }
+        
+        // Add to document temporarily
+        document.body.appendChild(tempContainer);
+        
+        console.log('Temporary container created, generating PDF...');
+        
+        // Generate PDF from the temporary container
+        const opt = {
+            margin: [0.5, 0.5, 0.5, 0.5],
+            filename: `ROI-Analysis-${new Date().toISOString().split('T')[0]}.pdf`,
+            image: { type: 'jpeg', quality: 0.9 },
+            html2canvas: { 
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff'
+            },
+            jsPDF: { 
+                unit: 'in', 
+                format: 'letter', 
+                orientation: 'portrait' 
+            }
+        };
+        
+        await html2pdf().set(opt).from(tempContainer).save();
+        
+        // Clean up
+        document.body.removeChild(tempContainer);
+        
+        // Restore button state
+        const downloadBtn = document.getElementById('download-report-btn');
+        if (downloadBtn) {
+            downloadBtn.innerHTML = `
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Download Report
+            `;
+            downloadBtn.disabled = false;
+        }
+        
+        showSuccessMessage('PDF report downloaded successfully!');
+        console.log('Simple PDF generation completed successfully');
+        return true;
+        
+    } catch (error) {
+        console.error('Simple PDF generation failed:', error);
+        
+        // Clean up if container exists
+        const tempContainer = document.querySelector('div[style*="-9999px"]');
+        if (tempContainer && tempContainer.parentNode) {
+            tempContainer.parentNode.removeChild(tempContainer);
+        }
+        
+        return false;
     }
 }
 
