@@ -2713,13 +2713,32 @@ function displayInsights(insights) {
     // Clear existing content
     contentEl.innerHTML = '';
     
-    // Create insight elements with staggered animations
+    // Create insight elements with structured format and staggered animations
     insightItems.forEach((insight, index) => {
         const insightEl = document.createElement('div');
         insightEl.className = 'insight-item';
         insightEl.innerHTML = `
-            <div class="insight-title">${insight.title}</div>
-            <div class="insight-description">${insight.description}</div>
+            <div class="insight-component">
+                <div class="insight-label">
+                    <span class="insight-icon">💡</span>
+                    <span class="insight-label-text">Actionable Recommendation:</span>
+                </div>
+                <div class="insight-content">${insight.recommendation}</div>
+            </div>
+            <div class="insight-component">
+                <div class="insight-label">
+                    <span class="insight-icon">✅</span>
+                    <span class="insight-label-text">Best Practice:</span>
+                </div>
+                <div class="insight-content">${insight.bestPractice}</div>
+            </div>
+            <div class="insight-component">
+                <div class="insight-label">
+                    <span class="insight-icon">🚀</span>
+                    <span class="insight-label-text">Key Success Driver:</span>
+                </div>
+                <div class="insight-content">${insight.keySuccessDriver}</div>
+            </div>
         `;
         
         contentEl.appendChild(insightEl);
@@ -2735,14 +2754,14 @@ function displayInsights(insights) {
 }
 
 /**
- * Parse insights text into structured format
- * @param {string} insightsText - Raw text from Gemini
- * @returns {Array} Array of insight objects with title and description
+ * Parse insights text into structured format with three components per insight
+ * @param {string} insightsText - Raw text from Gemini with structured insights
+ * @returns {Array} Array of insight objects with recommendation, bestPractice, and keySuccessDriver
  */
 function parseInsightsText(insightsText) {
     const insights = [];
     
-    // Helper function to clean markdown formatting
+    // Helper function to clean markdown formatting but preserve structure
     const cleanMarkdown = (text) => {
         return text
             .replace(/\*\*(.*?)\*\*/g, '$1') // Remove **bold** formatting
@@ -2754,18 +2773,27 @@ function parseInsightsText(insightsText) {
     const sections = insightsText.split(/\d+\.\s+/).filter(section => section.trim());
     
     sections.forEach((section, index) => {
-        const lines = section.trim().split('\n').filter(line => line.trim());
+        // Parse each section to extract the three components
+        const recommendation = section.match(/(?:Actionable Recommendation:|)\s*([^*]+?)(?=\*\*Best Practice:|$)/i);
+        const bestPractice = section.match(/\*\*Best Practice:\*\*\s*([^*]+?)(?=\*\*Key Success Driver:|$)/i);
+        const keySuccessDriver = section.match(/\*\*Key Success Driver:\*\*\s*([^*]+?)(?=\n|$)/i);
         
-        if (lines.length > 0) {
-            // First line is usually the title/action
-            const title = cleanMarkdown(lines[0].trim());
-            // Remaining lines are the description
-            const description = cleanMarkdown(lines.slice(1).join(' ').trim()) || title;
-            
+        if (recommendation && bestPractice && keySuccessDriver) {
             insights.push({
-                title: title,
-                description: description
+                recommendation: cleanMarkdown(recommendation[1]).trim(),
+                bestPractice: cleanMarkdown(bestPractice[1]).trim(),
+                keySuccessDriver: cleanMarkdown(keySuccessDriver[1]).trim()
             });
+        } else {
+            // Fallback: treat the whole section as a recommendation if structure not found
+            const lines = section.trim().split('\n').filter(line => line.trim());
+            if (lines.length > 0) {
+                insights.push({
+                    recommendation: cleanMarkdown(lines[0].trim()),
+                    bestPractice: cleanMarkdown(lines.slice(1).join(' ').trim()) || "Follow standard implementation practices.",
+                    keySuccessDriver: "Monitor progress regularly and adjust based on performance metrics."
+                });
+            }
         }
     });
     
@@ -2824,11 +2852,17 @@ function showInsightsError(errorMessage) {
  * @param {string} taskName - The name of the task being automated
  */
 function displayDemoInsights(taskName) {
-    const demoInsights = `1. **Optimize Process Timing**: Consider implementing ${taskName} during off-peak hours to reduce system load and improve processing speed by 15-20%.
+    const demoInsights = `1. **Actionable Recommendation:** Implement ${taskName} during off-peak hours to reduce system load and improve processing speed by 15-20%.
+**Best Practice:** Schedule automated tasks between 2-6 AM when system resources are most available.
+**Key Success Driver:** Monitor system performance metrics to identify optimal processing windows for maximum efficiency.
 
-2. **Implement Batch Processing**: Group similar tasks together to maximize efficiency gains. This approach could increase your ROI by an additional 25-30% through reduced overhead.
+2. **Actionable Recommendation:** Group similar tasks together to maximize efficiency gains through batch processing.
+**Best Practice:** Create processing queues that handle related tasks in sequence to minimize context switching overhead.
+**Key Success Driver:** Establish clear data validation checkpoints between batches to ensure processing integrity and prevent cascading errors.
 
-3. **Monitor and Iterate**: Set up automated tracking metrics to continuously optimize your ${taskName} automation. Regular performance reviews can identify new improvement opportunities worth 10-15% additional savings.
+3. **Actionable Recommendation:** Set up automated tracking metrics to continuously optimize your ${taskName} automation performance.
+**Best Practice:** Implement real-time dashboards that display key performance indicators and alert on anomalies.
+**Key Success Driver:** Regular performance reviews every 30 days to identify improvement opportunities and adjust automation parameters.
 
 *Note: These are demo insights. Configure Vertex AI for personalized recommendations.*`;
 

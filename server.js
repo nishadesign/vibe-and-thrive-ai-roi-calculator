@@ -134,8 +134,8 @@ app.post('/ai-insights', async (req, res) => {
       });
     }
 
-    // Create a comprehensive prompt for Gemini to generate actionable insights
-    const prompt = `As an AI automation expert, analyze this ROI calculation and provide 2-3 highly actionable insights to improve automation ROI:
+    // Create a comprehensive prompt for Gemini to generate structured insights
+    const prompt = `As an AI automation expert, analyze this ROI calculation and provide exactly 3 highly actionable insights to improve automation ROI:
 
 Task: ${taskName}
 
@@ -147,13 +147,25 @@ Please provide specific, actionable recommendations that focus on:
 2. Implementation strategies to maximize efficiency gains
 3. Risk mitigation and best practices
 
-Format your response as clear, numbered insights (2-3 maximum). Each insight should be:
-- Specific and actionable
-- Directly related to the task and ROI data
-- Focused on practical improvements
-- Concise but informative (2-3 sentences each)
+Format your response as exactly 3 numbered insights. Each insight MUST contain exactly these 3 components in this order:
 
-Begin each insight with a strong action verb and focus on measurable improvements.`;
+**Actionable Recommendation:** [A specific, actionable recommendation starting with a strong action verb]
+**Best Practice:** [A short tip for implementing the recommendation effectively]
+**Key Success Driver:** [A critical factor that ensures the recommendation achieves maximum ROI]
+
+Example format:
+1. **Actionable Recommendation:** Implement batch processing to group similar tasks and reduce overhead.
+**Best Practice:** Schedule batch processing during off-peak hours for minimal system load.
+**Key Success Driver:** Ensure all data sources are properly synchronized to avoid processing delays.
+
+2. [Second insight with same structure]
+3. [Third insight with same structure]
+
+Requirements:
+- Each component should be 1-2 sentences maximum
+- Focus on practical, measurable improvements
+- Directly relate to the task and ROI data provided
+- Use clear, professional language`;
 
     // Generate content using Gemini
     const result = await generativeModel.generateContent(prompt);

@@ -793,28 +793,43 @@ html {
 .insight-item:nth-child(2) { transition-delay: 0.2s; }
 .insight-item:nth-child(3) { transition-delay: 0.3s; }
 
-/* Insight content styling */
-.insight-title {
-    font-weight: 600;
-    color: #1f2937;
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
+/* Enhanced structured insight content styling */
+.insight-component {
+    margin-bottom: 1rem;
+}
+
+.insight-component:last-child {
+    margin-bottom: 0;
+}
+
+.insight-label {
     display: flex;
     align-items: center;
-    text-align: left;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 0.95rem;
 }
 
-.insight-title::before {
-    content: "💡";
+.insight-icon {
     margin-right: 0.5rem;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    display: inline-block;
+    min-width: 1.5rem;
 }
 
-.insight-description {
+.insight-label-text {
+    font-weight: 700;
+    color: #374151;
+}
+
+.insight-content {
     color: #4b5563;
     line-height: 1.6;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     text-align: left;
+    margin-left: 2rem; /* Align with label content */
+    padding: 0.25rem 0;
 }
 
 /* Loading animation enhancement */
