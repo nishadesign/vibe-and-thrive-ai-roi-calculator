@@ -1151,6 +1151,9 @@ function collectStep2Data() {
     wizardData.taskComplexityScore = document.getElementById('taskComplexityScore').value;
     wizardData.currentActionMaturityScore = document.getElementById('currentActionMaturityScore').value;
     
+    // Optional expected time savings field
+    wizardData.expectedTimeSavings = parseFloat(document.getElementById('expectedTimeSavings').value) || null;
+    
     // Optional cost fields with default values
     wizardData.hourlyRate = parseFloat(document.getElementById('hourlyRate').value) || 50; // Default $50/hour
     wizardData.numSellers = parseFloat(document.getElementById('numSellers').value) || 1; // Default 1 person
