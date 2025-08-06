@@ -2437,10 +2437,14 @@ async function generatePDFReport() {
         downloadBtn.disabled = true;
 
         // Step 1: Populate PDF template with current data
+        console.log('Populating PDF template with data...');
         await populatePDFTemplate();
+        console.log('PDF template populated');
 
         // Step 2: Create and render chart for PDF
+        console.log('Creating PDF chart...');
         await createPDFChart();
+        console.log('PDF chart created');
 
         // Step 3: Generate PDF using html2pdf
         const element = document.getElementById('pdf-report-content');
@@ -2448,7 +2452,19 @@ async function generatePDFReport() {
             throw new Error('PDF template element not found');
         }
         
-        console.log('PDF element found, generating PDF...');
+        console.log('PDF element found, making visible for PDF generation...');
+        
+        // Temporarily show the PDF template for capture
+        const originalDisplay = element.style.display;
+        const originalVisibility = element.style.visibility;
+        element.classList.remove('hidden');
+        element.style.display = 'block';
+        element.style.visibility = 'visible';
+        element.style.position = 'absolute';
+        element.style.left = '-9999px'; // Move off-screen but keep visible
+        element.style.top = '0px';
+        
+        console.log('PDF element visibility adjusted, generating PDF...');
         
         // Configure PDF options for optimal output
         const opt = {
@@ -2476,6 +2492,16 @@ async function generatePDFReport() {
         await html2pdf().set(opt).from(element).save();
         console.log('PDF generation completed successfully');
 
+        // Restore element visibility
+        element.style.display = originalDisplay;
+        element.style.visibility = originalVisibility;
+        element.style.position = '';
+        element.style.left = '';
+        element.style.top = '';
+        element.classList.add('hidden');
+        
+        console.log('PDF element visibility restored');
+
         // Clean up: destroy PDF chart instance
         if (pdfChart) {
             pdfChart.destroy();
@@ -2491,6 +2517,18 @@ async function generatePDFReport() {
 
     } catch (error) {
         console.error('PDF generation error:', error);
+        
+        // Restore element visibility if it exists
+        const element = document.getElementById('pdf-report-content');
+        if (element) {
+            element.style.display = '';
+            element.style.visibility = '';
+            element.style.position = '';
+            element.style.left = '';
+            element.style.top = '';
+            element.classList.add('hidden');
+            console.log('PDF element visibility restored after error');
+        }
         
         // Restore button state
         const downloadBtn = document.getElementById('download-report-btn');
@@ -2640,12 +2678,20 @@ async function populatePDFTemplate() {
     // Populate task information with null checks
     const pdfTaskName = document.getElementById('pdf-task-name');
     if (pdfTaskName) {
-        pdfTaskName.textContent = wizardData.taskName || document.getElementById('taskName')?.value || 'Not specified';
+        const taskNameValue = wizardData.taskName || document.getElementById('taskName')?.value || 'Not specified';
+        pdfTaskName.textContent = taskNameValue;
+        console.log('PDF Task Name set to:', taskNameValue);
+    } else {
+        console.warn('pdf-task-name element not found');
     }
     
     const pdfTaskPerformer = document.getElementById('pdf-task-performer');
     if (pdfTaskPerformer) {
-        pdfTaskPerformer.textContent = wizardData.taskPerformer || document.getElementById('taskPerformer')?.value || 'Not specified';
+        const taskPerformerValue = wizardData.taskPerformer || document.getElementById('taskPerformer')?.value || 'Not specified';
+        pdfTaskPerformer.textContent = taskPerformerValue;
+        console.log('PDF Task Performer set to:', taskPerformerValue);
+    } else {
+        console.warn('pdf-task-performer element not found');
     }
 
     // Get complexity and maturity scores
@@ -2662,25 +2708,45 @@ async function populatePDFTemplate() {
         pdfActionMaturity.textContent = `${maturityScore} ${getMaturityLabel(maturityScore)}`;
     }
 
-    // Copy ROI metrics from the main results with null checks
+    // Copy ROI metrics from the main results with null checks and correct IDs
     const pdfTimeSavings = document.getElementById('pdf-time-savings');
     if (pdfTimeSavings) {
-        pdfTimeSavings.textContent = document.getElementById('timeSavings')?.textContent || '-';
+        const timeSavingsValue = document.getElementById('potentialTimeSavings')?.textContent || 
+                                document.getElementById('currentTimeSavings')?.textContent || '-';
+        pdfTimeSavings.textContent = timeSavingsValue;
+        console.log('PDF Time Savings set to:', timeSavingsValue);
+    } else {
+        console.warn('pdf-time-savings element not found');
     }
     
     const pdfCostSavings = document.getElementById('pdf-cost-savings');
     if (pdfCostSavings) {
-        pdfCostSavings.textContent = document.getElementById('costSavings')?.textContent || '-';
+        const costSavingsValue = document.getElementById('potentialCostSavings')?.textContent || 
+                                document.getElementById('currentCostSavings')?.textContent || '-';
+        pdfCostSavings.textContent = costSavingsValue;
+        console.log('PDF Cost Savings set to:', costSavingsValue);
+    } else {
+        console.warn('pdf-cost-savings element not found');
     }
     
     const pdfAgentRoi = document.getElementById('pdf-agent-roi');
     if (pdfAgentRoi) {
-        pdfAgentRoi.textContent = document.getElementById('agentROI')?.textContent || '-';
+        const agentRoiValue = document.getElementById('potentialAgentROI')?.textContent || 
+                             document.getElementById('currentAgentROI')?.textContent || '-';
+        pdfAgentRoi.textContent = agentRoiValue;
+        console.log('PDF Agent ROI set to:', agentRoiValue);
+    } else {
+        console.warn('pdf-agent-roi element not found');
     }
     
     const pdfOrgRoi = document.getElementById('pdf-org-roi');
     if (pdfOrgRoi) {
-        pdfOrgRoi.textContent = document.getElementById('orgROI')?.textContent || '-';
+        const orgRoiValue = document.getElementById('potentialOrgROI')?.textContent || 
+                           document.getElementById('currentOrgROI')?.textContent || '-';
+        pdfOrgRoi.textContent = orgRoiValue;
+        console.log('PDF Org ROI set to:', orgRoiValue);
+    } else {
+        console.warn('pdf-org-roi element not found');
     }
 
     // Generate recommendations based on ROI scores
