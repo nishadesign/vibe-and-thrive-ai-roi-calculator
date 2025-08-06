@@ -1,4 +1,4 @@
-import { VertexAI } from '@google-cloud/vertexai';
+const { VertexAI } = require('@google-cloud/vertexai');
 
 // Initialize Vertex AI with better error handling
 let vertexAI = null;
@@ -51,7 +51,7 @@ function initializeVertexAI() {
   }
 }
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   // Handle CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -143,4 +143,4 @@ Requirements:
       details: error.message 
     });
   }
-}
+};

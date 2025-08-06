@@ -2412,8 +2412,21 @@ function initializePDFDownload() {
  */
 async function generatePDFReport() {
     try {
+        console.log('Starting PDF generation...');
+        
+        // Check if html2pdf is available
+        if (typeof html2pdf === 'undefined') {
+            console.warn('html2pdf library not available, using fallback method');
+            await generateSimplePDFReport();
+            return;
+        }
+        
         // Show loading state on button
         const downloadBtn = document.getElementById('download-report-btn');
+        if (!downloadBtn) {
+            throw new Error('Download button not found');
+        }
+        
         const originalText = downloadBtn.innerHTML;
         downloadBtn.innerHTML = `
             <svg class="w-5 h-5 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2431,6 +2444,11 @@ async function generatePDFReport() {
 
         // Step 3: Generate PDF using html2pdf
         const element = document.getElementById('pdf-report-content');
+        if (!element) {
+            throw new Error('PDF template element not found');
+        }
+        
+        console.log('PDF element found, generating PDF...');
         
         // Configure PDF options for optimal output
         const opt = {
@@ -2454,7 +2472,9 @@ async function generatePDFReport() {
         };
 
         // Generate and download the PDF
+        console.log('Calling html2pdf with options:', opt);
         await html2pdf().set(opt).from(element).save();
+        console.log('PDF generation completed successfully');
 
         // Clean up: destroy PDF chart instance
         if (pdfChart) {
@@ -2474,11 +2494,120 @@ async function generatePDFReport() {
         
         // Restore button state
         const downloadBtn = document.getElementById('download-report-btn');
-        downloadBtn.innerHTML = originalText;
-        downloadBtn.disabled = false;
+        if (downloadBtn) {
+            downloadBtn.innerHTML = downloadBtn.innerHTML.includes('Generating') ? 
+                `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Download Report` : downloadBtn.innerHTML;
+            downloadBtn.disabled = false;
+        }
         
-        // Show error message
-        showError('Failed to generate PDF report. Please try again.');
+        // Show error message with more details
+        showError(`Failed to generate PDF report: ${error.message}`);
+    }
+}
+
+/**
+ * Simple fallback PDF generation using window.print()
+ * When html2pdf library is not available
+ */
+async function generateSimplePDFReport() {
+    try {
+        const downloadBtn = document.getElementById('download-report-btn');
+        
+        // Show loading state
+        if (downloadBtn) {
+            downloadBtn.innerHTML = 'Preparing Report...';
+            downloadBtn.disabled = true;
+        }
+        
+        // Populate the PDF template
+        await populatePDFTemplate();
+        await createPDFChart();
+        
+        // Create a new window with the report content
+        const reportElement = document.getElementById('pdf-report-content');
+        if (!reportElement) {
+            throw new Error('PDF template not found');
+        }
+        
+        // Create a new window for printing
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            throw new Error('Popup blocked. Please allow popups and try again.');
+        }
+        
+        // Get the styles from the current page
+        const styles = Array.from(document.styleSheets)
+            .map(styleSheet => {
+                try {
+                    return Array.from(styleSheet.cssRules)
+                        .map(rule => rule.cssText)
+                        .join('\n');
+                } catch (e) {
+                    return '';
+                }
+            })
+            .join('\n');
+        
+        // Write the content to the new window
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>AI ROI Analysis Report</title>
+                <style>
+                    ${styles}
+                    @media print {
+                        body { margin: 0; }
+                        .no-print { display: none !important; }
+                    }
+                </style>
+            </head>
+            <body>
+                ${reportElement.outerHTML}
+            </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        
+        // Wait for content to load, then trigger print
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 1000);
+        
+        // Restore button state
+        if (downloadBtn) {
+            downloadBtn.innerHTML = `
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Download Report
+            `;
+            downloadBtn.disabled = false;
+        }
+        
+        showSuccessMessage('Report opened in new window. Use your browser\'s print function to save as PDF.');
+        
+    } catch (error) {
+        console.error('Simple PDF generation error:', error);
+        
+        // Restore button state
+        const downloadBtn = document.getElementById('download-report-btn');
+        if (downloadBtn) {
+            downloadBtn.innerHTML = `
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Download Report
+            `;
+            downloadBtn.disabled = false;
+        }
+        
+        showError(`Failed to generate report: ${error.message}`);
     }
 }
 

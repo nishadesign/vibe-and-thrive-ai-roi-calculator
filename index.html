@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROI 7: licensed to quantify™</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2pdf.js for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'spin-slow': 'spin 3s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Main Container -->
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b">
+                            <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-6">
+                <h1 class="text-3xl font-bold text-gray-900">ROI 7: licensed to quantify<sup>™</sup></h1>
+                <p class="text-gray-600 mt-2">Calculate the return on investment for your AI automation projects</p>
+            </div>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="bg-white border-b">
+            <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
+                <div class="flex items-center">
+                    <div class="flex items-center text-sm font-medium text-gray-500">
+                        <span id="step1-indicator" class="flex items-center">
+                            <span class="flex items-center justify-center w-8 h-8 border-2 border-blue-600 rounded-full bg-blue-600 text-white mr-2">1</span>
+                            Task Identification
+                        </span>
+                        <svg class="w-5 h-5 text-gray-300 mx-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        
+                        <span id="step2-indicator" class="flex items-center text-gray-400">
+                            <span class="flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-full bg-white mr-2">2</span>
+                            ROI Input
+                        </span>
+                        <svg class="w-5 h-5 text-gray-300 mx-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        
+                        <span id="step3-indicator" class="flex items-center text-gray-400">
+                            <span class="flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-full bg-white mr-2">3</span>
+                            Results & Chart
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="flex-1 max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-8 w-full">
+            <!-- Step 1: Task Identification -->
+            <div id="step1" class="wizard-step">
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Step 1: Task Identification</h2>
+                    
+                    <form id="step1-form" class="space-y-6">
+                        <!-- Task Description -->
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <label for="taskName" class="block text-lg font-medium text-gray-900">
+                                    What task would you like to automate?
+                                </label>
+                                <button 
+                                    type="button"
+                                    id="ai-writing-btn"
+                                    class="inline-flex items-center px-3 py-2 border border-purple-300 rounded-lg text-sm font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors duration-200"
+                                >
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                    Write with AI
+                                </button>
+                            </div>
+                            <textarea 
+                                id="taskName"
+                                name="taskName"
+                                rows="4"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                placeholder="e.g., Draft personalized sales emails, Process support tickets, Generate reports, Analyze customer feedback, Create content summaries..."
+                                required
+                            ></textarea>
+                            <p class="mt-2 text-sm text-gray-600">Describe the specific process or workflow you'd like to improve with AI automation.</p>
+                        </div>
+
+                        <!-- Task Performer -->
+                        <div>
+                            <label for="taskPerformer" class="block text-sm font-medium text-gray-700 mb-2">Who typically performs this task? *</label>
+                            <select id="taskPerformer" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    required>
+                                <option value="">Select role...</option>
+                                <option value="Sales Representatives">Sales Representatives</option>
+                                <option value="Customer Support Agents">Customer Support Agents</option>
+                                <option value="Marketing Team">Marketing Team</option>
+                                <option value="Data Analysts">Data Analysts</option>
+                                <option value="Content Writers">Content Writers</option>
+                                <option value="Administrative Staff">Administrative Staff</option>
+                                <option value="Software Developers">Software Developers</option>
+                                <option value="HR Personnel">HR Personnel</option>
+                                <option value="Finance Team">Finance Team</option>
+                                <option value="Operations Team">Operations Team</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <!-- Organization Size -->
+                        <div>
+                            <label for="organizationSize" class="block text-sm font-medium text-gray-700 mb-2">Organization Size</label>
+                            <select id="organizationSize" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select size...</option>
+                                <option value="1-10 employees">1–10 employees (Startup/Small Team)</option>
+                                <option value="11-50 employees">11–50 employees (Small Business)</option>
+                                <option value="51-200 employees">51–200 employees (Mid-size Company)</option>
+                                <option value="201-500 employees">201–500 employees (Large Company)</option>
+                                <option value="500+ employees">500+ employees (Enterprise)</option>
+                            </select>
+                            <p class="mt-1 text-xs text-gray-500">This helps us customize the ROI calculations for your specific context.</p>
+                        </div>
+                    </form>
+
+                    <div class="flex justify-end mt-8">
+                        <button id="step1-next" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            Continue to ROI Details →
+                    </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Writing Assistant Modal -->
+            <div id="ai-writing-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+                <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+                    <div class="mt-3">
+                        <!-- Modal Header -->
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-medium text-gray-900">AI Writing Assistant</h3>
+                            <button id="close-ai-modal" class="text-gray-400 hover:text-gray-600">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- AI Prompt Input -->
+                        <div class="mb-4">
+                            <label for="ai-prompt" class="block text-sm font-medium text-gray-700 mb-2">
+                                Describe your task in simple terms:
+                            </label>
+                            <textarea 
+                                id="ai-prompt"
+                                rows="3"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                placeholder="e.g., I need to write emails to customers, or I want to summarize meeting notes..."
+                            ></textarea>
+                            <p class="mt-1 text-xs text-gray-500">Give a brief description and AI will help you write a detailed task description.</p>
+                    </div>
+                    
+                        <!-- AI Suggestions -->
+                        <div id="ai-suggestions" class="mb-4 hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">AI Suggested Description:</label>
+                            <div class="bg-gray-50 border border-gray-200 rounded-md p-4">
+                                <p id="ai-generated-text" class="text-gray-800"></p>
+                    </div>
+                </div>
+                
+                        <!-- Loading State -->
+                        <div id="ai-loading" class="hidden text-center py-4">
+                            <div class="inline-flex items-center">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                                <span class="text-purple-600">AI is writing your task description...</span>
+                    </div>
+                </div>
+
+                        <!-- Modal Actions -->
+                        <div class="flex justify-end space-x-3 pt-4">
+                            <button 
+                                id="generate-ai-description"
+                                class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled
+                            >
+                                Generate Description
+                            </button>
+                            <button 
+                                id="use-ai-description"
+                                class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 hidden"
+                            >
+                                Use This Description
+                            </button>
+                            <button 
+                                id="cancel-ai-modal"
+                                class="bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-4 rounded-md transition-colors duration-200"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+
+            <!-- Step 2: ROI Input Form -->
+            <div id="step2" class="wizard-step hidden">
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Step 2: ROI Input</h2>
+
+                <form id="roiForm" class="space-y-6">
+                        <!-- Task Summary -->
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h3 class="font-medium text-blue-900 mb-2">Task Summary</h3>
+                            <p class="text-blue-800"><span id="taskSummary">-</span></p>
+                            <p class="text-blue-600 text-sm">Performed by: <span id="performerSummary">-</span></p>
+                            <p class="text-blue-600 text-sm">Organization size: <span id="organizationSummary">-</span></p>
+                    </div>
+
+                    <!-- Task Frequency -->
+                    <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Task Frequency *</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="taskFrequency" placeholder="5" min="1" step="1"
+                                       class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <select id="frequencyUnit" 
+                                        class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="per day">per day</option>
+                                <option value="per week">per week</option>
+                                <option value="per month">per month</option>
+                                <option value="per year">per year</option>
+                            </select>
+                        </div>
+                    </div>
+
+                        <!-- Time Spent -->
+                    <div>
+                            <label for="medianTime" class="block text-sm font-medium text-gray-700 mb-2">
+                                Estimated time spent per task (minutes) *
+                            </label>
+                            <input type="number" id="medianTime" placeholder="15" min="1" step="1"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <p class="text-sm text-gray-500 mt-1">How long does it typically take to complete this task manually?</p>
+                        </div>
+
+                        <!-- Task Complexity Score -->
+                        <div>
+                            <label for="taskComplexityScore" class="block text-sm font-medium text-gray-700 mb-2">Task Complexity *</label>
+                        <div class="flex gap-2">
+                            <select id="taskComplexityScore" 
+                                        class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select complexity...</option>
+                                <option value="Very Low">Very Low</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Very High">Very High</option>
+                            </select>
+                            <button type="button" id="openTaskComplexityModal" 
+                                        class="px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium transition-colors duration-200">
+                                Help Me Choose
+                            </button>
+                        </div>
+                    </div>
+
+                        <!-- Action Maturity Score -->
+                    <div>
+                            <label for="currentActionMaturityScore" class="block text-sm font-medium text-gray-700 mb-2">Current Action Maturity *</label>
+                        <div class="flex gap-2">
+                            <select id="currentActionMaturityScore" 
+                                        class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select current maturity...</option>
+                                <option value="Very Low">Very Low</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Very High">Very High</option>
+                            </select>
+                            <button type="button" id="openCurrentActionMaturityModal" 
+                                        class="px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium transition-colors duration-200">
+                                Help Me Choose
+                            </button>
+                        </div>
+                            <p class="mt-1 text-xs text-gray-500">How ready is your organization for AI automation of this task?</p>
+                    </div>
+
+                        <!-- Cost Information -->
+                        <div class="border-t pt-6">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Cost Information (Optional)</h3>
+                            <p class="text-sm text-gray-600 mb-4">Provide cost details for more accurate ROI calculations, or leave blank for estimates.</p>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                                    <label for="hourlyRate" class="block text-sm font-medium text-gray-700 mb-2">Hourly Rate ($)</label>
+                        <input type="number" id="hourlyRate" placeholder="50" min="1" step="0.01"
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <p class="mt-1 text-xs text-gray-500">Average hourly cost of the person performing this task</p>
+                    </div>
+
+                    <div>
+                                    <label for="numSellers" class="block text-sm font-medium text-gray-700 mb-2">Number of People</label>
+                                    <input type="number" id="numSellers" placeholder="10" min="1" step="1"
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <p class="mt-1 text-xs text-gray-500">How many people currently perform this task</p>
+                    </div>
+
+                    <div>
+                        <label for="devCost" class="block text-sm font-medium text-gray-700 mb-2">Development Cost ($)</label>
+                        <input type="number" id="devCost" placeholder="10000" min="0" step="0.01"
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <p class="mt-1 text-xs text-gray-500">Estimated cost to develop the AI solution</p>
+                    </div>
+
+                    <div>
+                                    <label for="maintenanceCost" class="block text-sm font-medium text-gray-700 mb-2">Annual Maintenance ($)</label>
+                        <input type="number" id="maintenanceCost" placeholder="2000" min="0" step="0.01"
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <p class="mt-1 text-xs text-gray-500">Estimated annual cost to maintain the AI solution</p>
+                    </div>
+                    </div>
+                        </div>
+                    </form>
+
+                    <div class="flex justify-between mt-8">
+                        <button id="step2-back" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
+                            ← Back
+                    </button>
+                        <button id="step2-next" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            Calculate Results →
+                        </button>
+                </div>
+            </div>
+            </div>
+
+            <!-- Step 3: Results & Visualization -->
+            <div id="step3" class="wizard-step hidden">
+                <div class="space-y-8">
+                    <!-- Header -->
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Step 3: Results & Visualization</h2>
+                        
+                        <!-- Task Summary -->
+                        <div class="bg-green-50 p-4 rounded-lg mb-6">
+                            <h3 class="font-medium text-green-900 mb-2">Task Analysis Complete</h3>
+                            <p class="text-green-800"><span id="finalTaskSummary">-</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Two Column Layout -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+                        <!-- Left Column: Editable Inputs (1/3 width) -->
+                        <div class="md:col-span-1 bg-white rounded-lg shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                </svg>
+                                Adjust Parameters
+                            </h3>
+                            <p class="text-gray-600 mb-6">Modify any inputs below to see real-time ROI updates</p>
+                            
+                            <form id="step3Form" class="space-y-4">
+                                <!-- Task Frequency -->
+                    <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Task Frequency *</label>
+                                    <div class="flex gap-2">
+                                        <input type="number" id="step3TaskFrequency" placeholder="5" min="1" step="1"
+                                               class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <select id="step3FrequencyUnit" 
+                                                class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="per day">per day</option>
+                                            <option value="per week">per week</option>
+                                            <option value="per month">per month</option>
+                                            <option value="per year">per year</option>
+                                        </select>
+                                    </div>
+                    </div>
+
+                                <!-- Time Spent -->
+                                <div>
+                                    <label for="step3MedianTime" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Time per task (minutes) *
+                                    </label>
+                                    <input type="number" id="step3MedianTime" placeholder="15" min="1" step="1"
+                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                                <!-- Task Complexity Score -->
+                                <div>
+                                    <label for="step3TaskComplexityScore" class="block text-sm font-medium text-gray-700 mb-2">Task Complexity *</label>
+                                    <select id="step3TaskComplexityScore" 
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">Select complexity...</option>
+                                        <option value="Very Low">Very Low</option>
+                                        <option value="Low">Low</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="High">High</option>
+                                        <option value="Very High">Very High</option>
+                                    </select>
+            </div>
+
+                                <!-- Action Maturity Score -->
+                                <div>
+                                    <label for="step3CurrentActionMaturityScore" class="block text-sm font-medium text-gray-700 mb-2">Current Action Maturity *</label>
+                                    <select id="step3CurrentActionMaturityScore" 
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">Select current maturity...</option>
+                                        <option value="Very Low">Very Low</option>
+                                        <option value="Low">Low</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="High">High</option>
+                                        <option value="Very High">Very High</option>
+                                    </select>
+                                </div>
+
+                                <!-- Cost Information -->
+                                <div class="border-t pt-6">
+                                    <h4 class="text-lg font-medium text-gray-900 mb-4">Cost Information (Optional)</h4>
+                                    
+                                    <div class="space-y-3">
+                                        <div>
+                                            <label for="step3HourlyRate" class="block text-sm font-medium text-gray-700 mb-2">Hourly Rate ($)</label>
+                                            <input type="number" id="step3HourlyRate" placeholder="50" min="1" step="0.01"
+                                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        </div>
+
+                                        <div>
+                                            <label for="step3NumSellers" class="block text-sm font-medium text-gray-700 mb-2">Number of People</label>
+                                            <input type="number" id="step3NumSellers" placeholder="10" min="1" step="1"
+                                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        </div>
+
+                                        <div>
+                                            <label for="step3DevCost" class="block text-sm font-medium text-gray-700 mb-2">Development Cost ($)</label>
+                                            <input type="number" id="step3DevCost" placeholder="10000" min="0" step="0.01"
+                                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        </div>
+
+                                        <div>
+                                            <label for="step3MaintenanceCost" class="block text-sm font-medium text-gray-700 mb-2">Annual Maintenance ($)</label>
+                                            <input type="number" id="step3MaintenanceCost" placeholder="2000" min="0" step="0.01"
+                                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Right Column: Analysis Results (2/3 width) -->
+                        <div class="md:col-span-2 space-y-8">
+                            <!-- ROI Results -->
+                            <div class="bg-white rounded-lg shadow-lg p-8">
+                                                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-900 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        ROI Analysis
+                    </h3>
+                    <button id="download-report-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center text-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Download Report
+                    </button>
+                </div>
+
+                                <!-- Automation Impact Summary -->
+                                <div class="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border border-green-200 mb-8">
+                                    <h4 class="text-lg font-semibold text-gray-900 mb-3">🚀 Automation Impact Summary</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <p class="font-medium text-gray-700">Time Efficiency Gain:</p>
+                                            <p class="text-lg font-bold text-green-700" id="timeEfficiencyGain">-</p>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-700">Cost Efficiency Gain:</p>
+                                            <p class="text-lg font-bold text-green-700" id="costEfficiencyGain">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- ROI Comparison: Current vs Potential -->
+                                <div class="space-y-8 mb-8">
+                                    <!-- Current Performance -->
+                                    <div>
+                                        <h4 class="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">Current Performance</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <p class="text-sm text-blue-600 font-medium">Time Savings (hours/year)</p>
+                                <p class="text-2xl font-bold text-blue-800" id="currentTimeSavings">-</p>
+                            </div>
+                                            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                <p class="text-sm text-green-600 font-medium">Cost Savings (per year)</p>
+                                <p class="text-2xl font-bold text-green-800" id="currentCostSavings">-</p>
+                            </div>
+                                            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                <p class="text-sm text-purple-600 font-medium">ROI per Agent</p>
+                                <p class="text-2xl font-bold text-purple-800" id="currentAgentROI">-</p>
+                            </div>
+                                            <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                                <p class="text-sm text-indigo-600 font-medium">Organizational ROI</p>
+                                <p class="text-2xl font-bold text-indigo-800" id="currentOrgROI">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                                    <!-- Potential Performance -->
+                    <div>
+                                        <h4 class="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">Potential Performance</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div class="bg-blue-100 p-4 rounded-lg border-2 border-blue-300 shadow-md">
+                                                <p class="text-sm text-blue-700 font-medium">Time Savings (hours/year)</p>
+                                                <p class="text-2xl font-bold text-blue-900" id="potentialTimeSavings">-</p>
+                                                <p class="text-xs text-blue-600 mt-1" id="timeSavingsIncrease">-</p>
+                            </div>
+                                            <div class="bg-green-100 p-4 rounded-lg border-2 border-green-300 shadow-md">
+                                                <p class="text-sm text-green-700 font-medium">Cost Savings (per year)</p>
+                                                <p class="text-2xl font-bold text-green-900" id="potentialCostSavings">-</p>
+                                                <p class="text-xs text-green-600 mt-1" id="costSavingsIncrease">-</p>
+                            </div>
+                                            <div class="bg-purple-100 p-4 rounded-lg border-2 border-purple-300 shadow-md">
+                                                <p class="text-sm text-purple-700 font-medium">ROI per Agent</p>
+                                                <p class="text-2xl font-bold text-purple-900" id="potentialAgentROI">-</p>
+                                                <p class="text-xs text-purple-600 mt-1" id="agentROIIncrease">-</p>
+                            </div>
+                                            <div class="bg-indigo-100 p-4 rounded-lg border-2 border-indigo-300 shadow-md">
+                                                <p class="text-sm text-indigo-700 font-medium">Organizational ROI</p>
+                                                <p class="text-2xl font-bold text-indigo-900" id="potentialOrgROI">-</p>
+                                                <p class="text-xs text-indigo-600 mt-1" id="orgROIIncrease">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+
+                            <!-- Chart Section -->
+                            <div class="bg-white rounded-lg shadow-lg p-8">
+                                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                                    Task Complexity vs Action Maturity Chart
+                                </h3>
+                                <p class="text-gray-600 mb-6">Visualize your tasks plotted by complexity and maturity scores</p>
+                                
+                                <div class="chart-container">
+                                    <canvas id="taskScatterChart"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- AI Insights Section -->
+                            <div id="ai-insights-section" class="bg-white rounded-lg shadow-lg p-8 hidden">
+                                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                    </svg>
+                                    AI-Powered Insights
+                                </h3>
+                                <p class="text-gray-600 mb-6">Get personalized recommendations to optimize your automation ROI</p>
+                                
+                                <!-- Loading State -->
+                                <div id="insights-loading" class="flex items-center justify-center py-8 hidden">
+                                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                    <span class="ml-3 text-gray-600">Generating AI insights...</span>
+                                </div>
+                                
+                                <!-- Insights Content -->
+                                <div id="insights-content" class="space-y-4 hidden">
+                                    <!-- Dynamic insights will be populated here -->
+                                </div>
+                                
+                                <!-- Error State -->
+                                <div id="insights-error" class="bg-red-50 border border-red-200 rounded-lg p-4 hidden">
+                                    <div class="flex items-center">
+                                        <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span class="text-red-800 font-medium">Unable to generate insights</span>
+                                    </div>
+                                    <p class="text-red-700 mt-2" id="insights-error-message">Please try again later.</p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                        </div>
+                    </div>
+        </main>
+
+        <!-- Full Width Action Buttons Footer -->
+        <footer id="action-footer" class="action-buttons-footer bg-white border-t border-gray-200 py-6 mt-8 hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <button id="step3-back" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200 flex items-center">
+                        <svg class="w-5 h-5 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                        Edit Inputs
+                    </button>
+                    <button id="step3-restart" class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200 flex items-center">
+                        <svg class="w-5 h-5 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Calculate Another Task
+                    </button>
+                            </div>
+                            </div>
+        </footer>
+                        </div>
+
+    <!-- Hidden PDF Report Template -->
+    <div id="pdf-report-content" class="hidden pdf-container">
+        <div class="pdf-page">
+            <!-- PDF Header -->
+            <div class="pdf-header">
+                <h1 class="pdf-title">ROI 7: licensed to quantify<sup>™</sup> Analysis Report</h1>
+                <p class="pdf-subtitle">Automation Potential Assessment</p>
+                <div class="pdf-date">Generated on: <span id="pdf-generation-date"></span></div>
+                    </div>
+
+            <!-- PDF Content -->
+            <div class="pdf-content">
+                <!-- Task Overview Section -->
+                <div class="pdf-section">
+                    <h2 class="pdf-section-title">Task Overview</h2>
+                    <div class="pdf-info-grid">
+                        <div class="pdf-info-item">
+                            <span class="pdf-label">Task Description:</span>
+                            <span class="pdf-value" id="pdf-task-name"></span>
+                </div>
+                        <div class="pdf-info-item">
+                            <span class="pdf-label">Performed By:</span>
+                            <span class="pdf-value" id="pdf-task-performer"></span>
+                </div>
+                        <div class="pdf-info-item">
+                            <span class="pdf-label">Task Complexity:</span>
+                            <span class="pdf-value" id="pdf-task-complexity"></span>
+            </div>
+                        <div class="pdf-info-item">
+                            <span class="pdf-label">Action Maturity:</span>
+                            <span class="pdf-value" id="pdf-action-maturity"></span>
+    </div>
+                                </div>
+    </div>
+
+                <!-- ROI Summary Section -->
+                <div class="pdf-section">
+                    <h2 class="pdf-section-title">ROI Analysis Summary</h2>
+                    <div class="pdf-metrics-grid">
+                        <div class="pdf-metric-card pdf-metric-blue">
+                            <div class="pdf-metric-label">Annual Time Savings</div>
+                            <div class="pdf-metric-value" id="pdf-time-savings"></div>
+                                </div>
+                        <div class="pdf-metric-card pdf-metric-green">
+                            <div class="pdf-metric-label">Annual Cost Savings</div>
+                            <div class="pdf-metric-value" id="pdf-cost-savings"></div>
+                                </div>
+                        <div class="pdf-metric-card pdf-metric-purple">
+                            <div class="pdf-metric-label">ROI per Agent</div>
+                            <div class="pdf-metric-value" id="pdf-agent-roi"></div>
+                                </div>
+                        <div class="pdf-metric-card pdf-metric-indigo">
+                            <div class="pdf-metric-label">Organizational ROI</div>
+                            <div class="pdf-metric-value" id="pdf-org-roi"></div>
+            </div>
+            </div>
+    </div>
+
+                <!-- Chart Section -->
+                <div class="pdf-section">
+                    <h2 class="pdf-section-title">Task Complexity vs Action Maturity</h2>
+                    <div class="pdf-chart-container">
+                        <canvas id="pdf-chart-canvas"></canvas>
+                    </div>
+                    <div class="pdf-chart-description">
+                        <p>This chart visualizes the relationship between task complexity and action maturity, 
+                           helping identify the automation potential and expected ROI for this task.</p>
+        </div>
+    </div>
+
+                <!-- Recommendations Section -->
+                <div class="pdf-section">
+                    <h2 class="pdf-section-title">Recommendations</h2>
+                    <div class="pdf-recommendations" id="pdf-recommendations">
+                        <!-- Recommendations will be populated by JavaScript based on ROI scores -->
+                                </div>
+                                </div>
+                                </div>
+
+            <!-- PDF Footer -->
+            <div class="pdf-footer">
+                <p>This report was generated by ROI 7: licensed to quantify<sup>™</sup></p>
+                <p>For more information, visit your organization's AI automation team</p>
+                                </div>
+                                </div>
+                                </div>
+
+    <!-- Error Message Container -->
+    <div id="errorMessage" class="hidden fixed top-4 right-4 max-w-md bg-red-50 border border-red-200 rounded-lg p-4 z-50">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-red-800" id="errorText"></p>
+            </div>
+            <div class="ml-auto pl-3">
+                <button onclick="hideError()" class="text-red-400 hover:text-red-600">
+                    <span class="sr-only">Close</span>
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Complexity Modal - Step-by-Step Guide -->
+    <div id="taskComplexityModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div id="taskComplexityModalOverlay" class="absolute inset-0"></div>
+                    <div class="bg-white p-6 rounded-lg shadow-xl max-w-4xl w-full mx-4 relative z-10">
+            <!-- Close Button -->
+            <button id="closeTaskComplexityModal" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+            
+            <!-- Header -->
+            <div class="mb-6">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-2">Determine Task Complexity</h2>
+                <p class="text-gray-600">Answer 3 quick questions to calculate your task's complexity score</p>
+            </div>
+
+            <!-- Progress Indicator -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div id="complexity-step-1-indicator" class="flex items-center justify-center w-8 h-8 border-2 border-blue-600 rounded-full bg-blue-600 text-white text-sm font-medium mr-2">1</div>
+                        <span class="text-sm font-medium text-blue-600">Steps</span>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-200 mx-4">
+                        <div id="complexity-progress-bar" class="h-1 bg-blue-600 transition-all duration-300" style="width: 33.33%"></div>
+                    </div>
+                    <div class="flex items-center">
+                        <div id="complexity-step-2-indicator" class="flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-full bg-white text-gray-400 text-sm font-medium mr-2">2</div>
+                        <span class="text-sm font-medium text-gray-400">Judgment</span>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-200 mx-4"></div>
+                    <div class="flex items-center">
+                        <div id="complexity-step-3-indicator" class="flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-full bg-white text-gray-400 text-sm font-medium mr-2">3</div>
+                        <span class="text-sm font-medium text-gray-400">Data</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 1: Number of Steps -->
+            <div id="complexity-step-1" class="complexity-step">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">How many steps does this task typically take?</h3>
+                <p class="text-gray-600 mb-6">Think about the distinct actions or sub-tasks required to complete this task from start to finish.</p>
+                
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+                    <button class="complexity-option" data-step="1" data-value="1-2" data-numeric="1">
+                        <div class="complexity-option-content">
+                            <div class="text-lg font-bold text-blue-600">1-2</div>
+                            <div class="text-sm text-gray-600">Very Simple</div>
+                        </div>
+                    </button>
+                    <button class="complexity-option" data-step="1" data-value="2-3" data-numeric="2">
+                        <div class="complexity-option-content">
+                            <div class="text-lg font-bold text-blue-600">2-3</div>
+                            <div class="text-sm text-gray-600">Simple</div>
+                        </div>
+                    </button>
+                    <button class="complexity-option" data-step="1" data-value="3-5" data-numeric="3">
+                        <div class="complexity-option-content">
+                            <div class="text-lg font-bold text-blue-600">3-5</div>
+                            <div class="text-sm text-gray-600">Moderate</div>
+                        </div>
+                    </button>
+                    <button class="complexity-option" data-step="1" data-value="5-7" data-numeric="4">
+                        <div class="complexity-option-content">
+                            <div class="text-lg font-bold text-blue-600">5-7</div>
+                            <div class="text-sm text-gray-600">Complex</div>
+                        </div>
+                    </button>
+                    <button class="complexity-option" data-step="1" data-value="7+" data-numeric="5">
+                        <div class="complexity-option-content">
+                            <div class="text-lg font-bold text-blue-600">7+</div>
+                            <div class="text-sm text-gray-600">Very Complex</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Judgment Required -->
+            <div id="complexity-step-2" class="complexity-step hidden">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">How much human judgment is required?</h3>
+                <p class="text-gray-600 mb-6">Consider the level of decision-making, interpretation, or specialized knowledge needed.</p>
+                
+                <div class="space-y-3 mb-6">
+                    <button class="complexity-option w-full text-left" data-step="2" data-value="Minimal" data-numeric="1">
+                        <div class="complexity-option-content">
+                            <div class="font-semibold text-blue-600">Minimal Decision-Making</div>
+                            <div class="text-sm text-gray-600">Mostly following clear rules or procedures</div>
+                        </div>
+                    </button>
+                    <button class="complexity-option w-full text-left" data-step="2" data-value="Some Review" data-numeric="2">
+                        <div class="complexity-option-content">
+                            <div class="font-semibold text-blue-600">Some Review Needed</div>
+                            <div class="text-sm text-gray-600">Occasional verification or quality checks</div>
+                        </div>
+                    </button>
+                    <button class="complexity-option w-full text-left" data-step="2" data-value="Human Review" data-numeric="3">
+                        <div class="complexity-option-content">
+                            <div class="font-semibold text-blue-600">Regular Human Review</div>
+                            <div class="text-sm text-gray-600">Consistent oversight needed, but risk is generally low</div>
+                        </div>
+                    </button>
+                    <button class="complexity-option w-full text-left" data-step="2" data-value="Deep Reasoning" data-numeric="4">
+                        <div class="complexity-option-content">
+                            <div class="font-semibold text-blue-600">Deep Reasoning Required</div>
+                            <div class="text-sm text-gray-600">Involves contextualized analysis or content generation</div>
+                        </div>
+                    </button>
+                    <button class="complexity-option w-full text-left" data-step="2" data-value="High Stakes" data-numeric="5">
+                        <div class="complexity-option-content">
+                            <div class="font-semibold text-blue-600">High Stakes / Specialized</div>
+                            <div class="text-sm text-gray-600">Nuanced decisions, high risk, or specialized expertise required</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Data Sources -->
+            <div id="complexity-step-3" class="complexity-step hidden">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">How many data sources need to be accessed?</h3>
+                <p class="text-gray-600 mb-6">Think about the number and complexity of systems or sources data is pulled from.</p>
+                
+                <div class="space-y-3 mb-6">
+                    <button class="complexity-option w-full text-left" data-step="3" data-value="Single" data-numeric="1">
+                        <div class="complexity-option-content">
+                            <div class="font-semibold text-blue-600">Single Data Source</div>
+                            <div class="text-sm text-gray-600">All information comes from one place</div>
+                        </div>
+                    </button>
+                    <button class="complexity-option w-full text-left" data-step="3" data-value="1-2 Systems" data-numeric="2">
+                        <div class="complexity-option-content">
+                            <div class="font-semibold text-blue-600">1-2 Systems</div>
+                            <div class="text-sm text-gray-600">References a couple of different systems</div>
+                        </div>
+                    </button>
+                    <button class="complexity-option w-full text-left" data-step="3" data-value="2-3 Structured" data-numeric="3">
+                        <div class="complexity-option-content">
+                            <div class="font-semibold text-blue-600">2-3 Systems (Structured)</div>
+                            <div class="text-sm text-gray-600">Multiple systems with well-organized data</div>
+                        </div>
+                    </button>
+                    <button class="complexity-option w-full text-left" data-step="3" data-value="2-3 Unstructured" data-numeric="4">
+                        <div class="complexity-option-content">
+                            <div class="font-semibold text-blue-600">2-3 Systems (Unstructured)</div>
+                            <div class="text-sm text-gray-600">Multiple systems with messy or varied data formats</div>
+                        </div>
+                    </button>
+                    <button class="complexity-option w-full text-left" data-step="3" data-value="3+ Unstructured" data-numeric="5">
+                        <div class="complexity-option-content">
+                            <div class="font-semibold text-blue-600">Many Systems (3+)</div>
+                            <div class="text-sm text-gray-600">Complex data synthesis across multiple unstructured sources</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between pt-4 border-t">
+                <button id="complexity-back-btn" class="hidden bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-md font-medium transition-colors duration-200">
+                    ← Back
+                </button>
+                <div class="flex-1"></div>
+                <button id="complexity-next-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    Next →
+                </button>
+                <button id="complexity-finish-btn" class="hidden bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    Calculate Complexity
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Maturity Modal - Step-by-Step Guide -->
+    <div id="actionMaturityModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div id="actionMaturityModalOverlay" class="absolute inset-0"></div>
+                    <div class="bg-white p-6 rounded-lg shadow-xl max-w-4xl w-full mx-4 relative z-10">
+            <!-- Close Button -->
+            <button id="closeActionMaturityModal" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+            
+            <!-- Header -->
+            <div class="mb-6">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-2">Determine Action Maturity</h2>
+                <p class="text-gray-600">Evaluate current AI/automation capabilities in 3 key areas</p>
+            </div>
+
+            <!-- Progress Indicator -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div id="maturity-step-1-indicator" class="flex items-center justify-center w-8 h-8 border-2 border-blue-600 rounded-full bg-blue-600 text-white text-sm font-medium mr-2">1</div>
+                        <span class="text-sm font-medium text-blue-600">Reliability</span>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-200 mx-4">
+                        <div id="maturity-progress-bar" class="h-1 bg-blue-600 transition-all duration-300" style="width: 33.33%"></div>
+                    </div>
+                    <div class="flex items-center">
+                        <div id="maturity-step-2-indicator" class="flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-full bg-white text-gray-400 text-sm font-medium mr-2">2</div>
+                        <span class="text-sm font-medium text-gray-400">Quality</span>
+                    </div>
+                    <div class="flex-1 h-1 bg-gray-200 mx-4"></div>
+                    <div class="flex items-center">
+                        <div id="maturity-step-3-indicator" class="flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-full bg-white text-gray-400 text-sm font-medium mr-2">3</div>
+                        <span class="text-sm font-medium text-gray-400">Understanding</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 1: Reliability -->
+            <div id="maturity-step-1" class="maturity-step">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">How reliable is the current AI/automation?</h3>
+                <p class="text-gray-600 mb-6">Consider consistency, success rate, and how often errors occur.</p>
+                
+                <div class="space-y-3 mb-6">
+                    <button class="maturity-option w-full text-left" data-step="1" data-value="Very Low" data-numeric="1">
+                        <div class="maturity-option-content">
+                            <div class="font-semibold text-blue-600">Very Low Reliability</div>
+                            <div class="text-sm text-gray-600">Frequent failures, inconsistent results, high error rate (&lt;60% success)</div>
+                        </div>
+                    </button>
+                    <button class="maturity-option w-full text-left" data-step="1" data-value="Low" data-numeric="2">
+                        <div class="maturity-option-content">
+                            <div class="font-semibold text-blue-600">Low Reliability</div>
+                            <div class="text-sm text-gray-600">Some consistency issues, moderate error rate (60-75% success)</div>
+                        </div>
+                    </button>
+                    <button class="maturity-option w-full text-left" data-step="1" data-value="Medium" data-numeric="3">
+                        <div class="maturity-option-content">
+                            <div class="font-semibold text-blue-600">Medium Reliability</div>
+                            <div class="text-sm text-gray-600">Generally consistent, occasional errors (75-85% success)</div>
+                        </div>
+                    </button>
+                    <button class="maturity-option w-full text-left" data-step="1" data-value="High" data-numeric="4">
+                        <div class="maturity-option-content">
+                            <div class="font-semibold text-blue-600">High Reliability</div>
+                            <div class="text-sm text-gray-600">Very consistent performance, rare errors (85-95% success)</div>
+                        </div>
+                    </button>
+                    <button class="maturity-option w-full text-left" data-step="1" data-value="Very High" data-numeric="5">
+                        <div class="maturity-option-content">
+                            <div class="font-semibold text-blue-600">Very High Reliability</div>
+                            <div class="text-sm text-gray-600">Extremely reliable, minimal errors (&gt;95% success)</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Output Quality -->
+            <div id="maturity-step-2" class="maturity-step hidden">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">What's the quality of the output?</h3>
+                <p class="text-gray-600 mb-6">Evaluate accuracy, completeness, and overall usefulness of results.</p>
+                
+                <div class="space-y-3 mb-6">
+                    <button class="maturity-option w-full text-left" data-step="2" data-value="Very Low" data-numeric="1">
+                        <div class="maturity-option-content">
+                            <div class="font-semibold text-blue-600">Very Low Quality</div>
+                            <div class="text-sm text-gray-600">Poor accuracy, incomplete results, often unusable</div>
+                        </div>
+                    </button>
+                    <button class="maturity-option w-full text-left" data-step="2" data-value="Low" data-numeric="2">
+                        <div class="maturity-option-content">
+                            <div class="font-semibold text-blue-600">Low Quality</div>
+                            <div class="text-sm text-gray-600">Below average accuracy, missing key information</div>
+                        </div>
+                    </button>
+                    <button class="maturity-option w-full text-left" data-step="2" data-value="Medium" data-numeric="3">
+                        <div class="maturity-option-content">
+                            <div class="font-semibold text-blue-600">Medium Quality</div>
+                            <div class="text-sm text-gray-600">Acceptable accuracy, mostly complete, needs some refinement</div>
+                        </div>
+                    </button>
+                    <button class="maturity-option w-full text-left" data-step="2" data-value="High" data-numeric="4">
+                        <div class="maturity-option-content">
+                            <div class="font-semibold text-blue-600">High Quality</div>
+                            <div class="text-sm text-gray-600">Good accuracy, comprehensive results, minimal editing needed</div>
+                        </div>
+                    </button>
+                    <button class="maturity-option w-full text-left" data-step="2" data-value="Very High" data-numeric="5">
+                        <div class="maturity-option-content">
+                            <div class="font-semibold text-blue-600">Very High Quality</div>
+                            <div class="text-sm text-gray-600">Excellent accuracy, complete and polished results</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Intent Understanding -->
+            <div id="maturity-step-3" class="maturity-step hidden">
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">How well does it understand user intent?</h3>
+                <p class="text-gray-600 mb-6">Consider how well it follows instructions, handles context, and manages edge cases.</p>
+                
+                <div class="space-y-3 mb-6">
+                    <button class="maturity-option w-full text-left" data-step="3" data-value="Very Low" data-numeric="1">
+                        <div class="maturity-option-content">
+                            <div class="font-semibold text-blue-600">Very Low Understanding</div>
+                            <div class="text-sm text-gray-600">Frequently misinterprets instructions, poor context awareness</div>
+                        </div>
+                    </button>
+                    <button class="maturity-option w-full text-left" data-step="3" data-value="Low" data-numeric="2">
+                        <div class="maturity-option-content">
+                            <div class="font-semibold text-blue-600">Low Understanding</div>
+                            <div class="text-sm text-gray-600">Sometimes misunderstands, limited context handling</div>
+                        </div>
+                    </button>
+                    <button class="maturity-option w-full text-left" data-step="3" data-value="Medium" data-numeric="3">
+                        <div class="maturity-option-content">
+                            <div class="font-semibold text-blue-600">Medium Understanding</div>
+                            <div class="text-sm text-gray-600">Generally follows instructions, handles common scenarios well</div>
+                        </div>
+                    </button>
+                    <button class="maturity-option w-full text-left" data-step="3" data-value="High" data-numeric="4">
+                        <div class="maturity-option-content">
+                            <div class="font-semibold text-blue-600">High Understanding</div>
+                            <div class="text-sm text-gray-600">Good instruction following, handles most edge cases</div>
+                        </div>
+                    </button>
+                    <button class="maturity-option w-full text-left" data-step="3" data-value="Very High" data-numeric="5">
+                        <div class="maturity-option-content">
+                            <div class="font-semibold text-blue-600">Very High Understanding</div>
+                            <div class="text-sm text-gray-600">Excellent comprehension, handles complex context and edge cases</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between pt-4 border-t">
+                <button id="maturity-back-btn" class="hidden bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-md font-medium transition-colors duration-200">
+                    ← Back
+                </button>
+                <div class="flex-1"></div>
+                <button id="maturity-next-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    Next →
+                </button>
+                <button id="maturity-finish-btn" class="hidden bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    Calculate Maturity
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
