@@ -866,7 +866,7 @@ function initializeAIWritingAssistant() {
             generateBtn.disabled = true;
             
             try {
-                const response = await fetch('/chat', {
+                const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -932,7 +932,7 @@ async function prePopulateStep2Fields() {
     showStep2LoadingState();
     
     try {
-        const response = await fetch('/chat', {
+        const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -2805,7 +2805,7 @@ async function generateAIInsights(taskName, roiSummary) {
         }, 200);
         
         // Call backend endpoint for AI insights
-        const response = await fetch('/ai-insights', {
+        const response = await fetch('/api/ai-insights', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
