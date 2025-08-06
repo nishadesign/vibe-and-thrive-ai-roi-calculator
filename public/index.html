@@ -492,61 +492,60 @@
                                     </div>
                                 </div>
 
-                                <!-- ROI Comparison: 4x4 Grid Layout -->
-                                <div class="roi-grid-container mb-8">
-                                    <h4 class="text-lg font-semibold text-gray-900 mb-6 border-b border-gray-200 pb-2">Performance Comparison</h4>
-                                    
-                                    <!-- 4x4 Responsive Grid -->
-                                    <div class="roi-grid">
-                                        <!-- Row 1: Time Savings -->
-                                        <div class="roi-metric-card current time-savings">
-                                            <p class="metric-label">Time Savings</p>
-                                            <p class="metric-value" id="currentTimeSavings">-</p>
-                                            <p class="metric-unit">hours/year</p>
-                                        </div>
-                                        <div class="roi-metric-card potential time-savings">
-                                            <p class="metric-label">Time Savings</p>
-                                            <p class="metric-value" id="potentialTimeSavings">-</p>
-                                            <div class="improvement-badge" id="timeSavingsIncrease">-</div>
-                                        </div>
-                                        
-                                        <!-- Row 2: Cost Savings -->
-                                        <div class="roi-metric-card current cost-savings">
-                                            <p class="metric-label">Cost Savings</p>
-                                            <p class="metric-value" id="currentCostSavings">-</p>
-                                            <p class="metric-unit">per year</p>
-                                        </div>
-                                        <div class="roi-metric-card potential cost-savings">
-                                            <p class="metric-label">Cost Savings</p>
-                                            <p class="metric-value" id="potentialCostSavings">-</p>
-                                            <div class="improvement-badge" id="costSavingsIncrease">-</div>
-                                        </div>
-                                        
-                                        <!-- Row 3: ROI per Agent -->
-                                        <div class="roi-metric-card current agent-roi">
-                                            <p class="metric-label">ROI per Agent</p>
-                                            <p class="metric-value" id="currentAgentROI">-</p>
-                                            <p class="metric-unit">percentage</p>
-                                        </div>
-                                        <div class="roi-metric-card potential agent-roi">
-                                            <p class="metric-label">ROI per Agent</p>
-                                            <p class="metric-value" id="potentialAgentROI">-</p>
-                                            <div class="improvement-badge" id="agentROIIncrease">-</div>
-                                        </div>
-                                        
-                                        <!-- Row 4: Organizational ROI -->
-                                        <div class="roi-metric-card current org-roi">
-                                            <p class="metric-label">Organizational ROI</p>
-                                            <p class="metric-value" id="currentOrgROI">-</p>
-                                            <p class="metric-unit">total impact</p>
-                                        </div>
-                                        <div class="roi-metric-card potential org-roi">
-                                            <p class="metric-label">Organizational ROI</p>
-                                            <p class="metric-value" id="potentialOrgROI">-</p>
-                                            <div class="improvement-badge" id="orgROIIncrease">-</div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <!-- ROI Comparison: Current vs Potential -->
+                                <div class="space-y-8 mb-8">
+                                    <!-- Current Performance -->
+                                    <div>
+                                        <h4 class="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">Current Performance</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <p class="text-sm text-blue-600 font-medium">Time Savings (hours/year)</p>
+                                <p class="text-2xl font-bold text-blue-800" id="currentTimeSavings">-</p>
+                            </div>
+                                            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                <p class="text-sm text-green-600 font-medium">Cost Savings (per year)</p>
+                                <p class="text-2xl font-bold text-green-800" id="currentCostSavings">-</p>
+                            </div>
+                                            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                <p class="text-sm text-purple-600 font-medium">ROI per Agent</p>
+                                <p class="text-2xl font-bold text-purple-800" id="currentAgentROI">-</p>
+                            </div>
+                                            <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                                <p class="text-sm text-indigo-600 font-medium">Organizational ROI</p>
+                                <p class="text-2xl font-bold text-indigo-800" id="currentOrgROI">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                                    <!-- Potential Performance -->
+                    <div>
+                                        <h4 class="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">Potential Performance</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div class="bg-blue-100 p-4 rounded-lg border-2 border-blue-300 shadow-md">
+                                                <p class="text-sm text-blue-700 font-medium">Time Savings (hours/year)</p>
+                                                <p class="text-2xl font-bold text-blue-900" id="potentialTimeSavings">-</p>
+                                                <p class="text-xs text-blue-600 mt-1" id="timeSavingsIncrease">-</p>
+                            </div>
+                                            <div class="bg-green-100 p-4 rounded-lg border-2 border-green-300 shadow-md">
+                                                <p class="text-sm text-green-700 font-medium">Cost Savings (per year)</p>
+                                                <p class="text-2xl font-bold text-green-900" id="potentialCostSavings">-</p>
+                                                <p class="text-xs text-green-600 mt-1" id="costSavingsIncrease">-</p>
+                            </div>
+                                            <div class="bg-purple-100 p-4 rounded-lg border-2 border-purple-300 shadow-md">
+                                                <p class="text-sm text-purple-700 font-medium">ROI per Agent</p>
+                                                <p class="text-2xl font-bold text-purple-900" id="potentialAgentROI">-</p>
+                                                <p class="text-xs text-purple-600 mt-1" id="agentROIIncrease">-</p>
+                            </div>
+                                            <div class="bg-indigo-100 p-4 rounded-lg border-2 border-indigo-300 shadow-md">
+                                                <p class="text-sm text-indigo-700 font-medium">Organizational ROI</p>
+                                                <p class="text-2xl font-bold text-indigo-900" id="potentialOrgROI">-</p>
+                                                <p class="text-xs text-indigo-600 mt-1" id="orgROIIncrease">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
             </div>
 
                             <!-- Chart Section -->
