@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROI 7: licensed to quantify™</title>
+    <title>AI Agent ROI Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- html2pdf.js for PDF generation -->
@@ -27,7 +27,7 @@
         <!-- Header -->
         <header class="bg-white shadow-sm border-b">
                             <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-6">
-                <h1 class="text-3xl font-bold text-gray-900">ROI 7: licensed to quantify<sup>™</sup></h1>
+                <h1 class="text-3xl font-bold text-gray-900">AI Agent ROI Calculator</h1>
                 <p class="text-gray-600 mt-2">Calculate the return on investment for your AI automation projects</p>
             </div>
         </header>
@@ -138,7 +138,7 @@
                     <div class="flex justify-end mt-8">
                         <button id="step1-next" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                             Continue to ROI Details →
-                    </button>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -169,26 +169,26 @@
                                 placeholder="e.g., I need to write emails to customers, or I want to summarize meeting notes..."
                             ></textarea>
                             <p class="mt-1 text-xs text-gray-500">Give a brief description and AI will help you write a detailed task description.</p>
-                    </div>
-                    
+                        </div>
+
                         <!-- AI Suggestions -->
                         <div id="ai-suggestions" class="mb-4 hidden">
                             <label class="block text-sm font-medium text-gray-700 mb-2">AI Suggested Description:</label>
                             <div class="bg-gray-50 border border-gray-200 rounded-md p-4">
                                 <p id="ai-generated-text" class="text-gray-800"></p>
-                    </div>
-                </div>
-                
+                            </div>
+                        </div>
+
                         <!-- Loading State -->
                         <div id="ai-loading" class="hidden text-center py-4">
                             <div class="inline-flex items-center">
                                 <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
+                                </svg>
                                 <span class="text-purple-600">AI is writing your task description...</span>
-                    </div>
-                </div>
+                            </div>
+                        </div>
 
                         <!-- Modal Actions -->
                         <div class="flex justify-end space-x-3 pt-4">
@@ -212,9 +212,9 @@
                                 Cancel
                             </button>
                         </div>
-                        </div>
                     </div>
                 </div>
+            </div>
 
             <!-- Step 2: ROI Input Form -->
             <div id="step2" class="wizard-step hidden">
@@ -373,7 +373,7 @@
                             
                             <form id="step3Form" class="space-y-4">
                                 <!-- Task Frequency -->
-                    <div>
+                                <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Task Frequency *</label>
                                     <div class="flex gap-2">
                                         <input type="number" id="step3TaskFrequency" placeholder="5" min="1" step="1"
@@ -386,7 +386,7 @@
                                             <option value="per year">per year</option>
                                         </select>
                                     </div>
-                    </div>
+                                </div>
 
                                 <!-- Time Spent -->
                                 <div>
@@ -395,7 +395,7 @@
                                     </label>
                                     <input type="number" id="step3MedianTime" placeholder="15" min="1" step="1"
                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
+                                </div>
 
                                 <!-- Task Complexity Score -->
                                 <div>
@@ -409,7 +409,7 @@
                                         <option value="High">High</option>
                                         <option value="Very High">Very High</option>
                                     </select>
-            </div>
+                                </div>
 
                                 <!-- Action Maturity Score -->
                                 <div>
@@ -469,83 +469,81 @@
                                     ROI Analysis
                                 </h3>
 
-                                <!-- Automation Impact Summary -->
-                                <div class="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border border-green-200 mb-8">
-                                    <h4 class="text-lg font-semibold text-gray-900 mb-3">🚀 Automation Impact Summary</h4>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                            <p class="font-medium text-gray-700">Time Efficiency Gain:</p>
-                                            <p class="text-lg font-bold text-green-700" id="timeEfficiencyGain">-</p>
-                                        </div>
-                                        <div>
-                                            <p class="font-medium text-gray-700">Cost Efficiency Gain:</p>
-                                            <p class="text-lg font-bold text-green-700" id="costEfficiencyGain">-</p>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 <!-- ROI Comparison: Current vs Potential -->
                                 <div class="space-y-8 mb-8">
                                     <!-- Current Performance -->
                                     <div>
                                         <h4 class="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">Current Performance</h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                                <p class="text-sm text-blue-600 font-medium">Time Savings (hours/year)</p>
-                                <p class="text-2xl font-bold text-blue-800" id="currentTimeSavings">-</p>
-                            </div>
+                                                <p class="text-sm text-blue-600 font-medium">Time Savings (hours/year)</p>
+                                                <p class="text-2xl font-bold text-blue-800" id="currentTimeSavings">-</p>
+                                            </div>
                                             <div class="bg-green-50 p-4 rounded-lg border border-green-200">
-                                <p class="text-sm text-green-600 font-medium">Cost Savings (per year)</p>
-                                <p class="text-2xl font-bold text-green-800" id="currentCostSavings">-</p>
-                            </div>
+                                                <p class="text-sm text-green-600 font-medium">Cost Savings (per year)</p>
+                                                <p class="text-2xl font-bold text-green-800" id="currentCostSavings">-</p>
+                                            </div>
                                             <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                                <p class="text-sm text-purple-600 font-medium">ROI per Agent</p>
-                                <p class="text-2xl font-bold text-purple-800" id="currentAgentROI">-</p>
-                            </div>
+                                                <p class="text-sm text-purple-600 font-medium">ROI per Agent</p>
+                                                <p class="text-2xl font-bold text-purple-800" id="currentAgentROI">-</p>
+                                            </div>
                                             <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                                <p class="text-sm text-indigo-600 font-medium">Organizational ROI</p>
-                                <p class="text-2xl font-bold text-indigo-800" id="currentOrgROI">-</p>
-                            </div>
-                        </div>
-                    </div>
+                                                <p class="text-sm text-indigo-600 font-medium">Organizational ROI</p>
+                                                <p class="text-2xl font-bold text-indigo-800" id="currentOrgROI">-</p>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <!-- Potential Performance -->
-                    <div>
+                                    <div>
                                         <h4 class="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">Potential Performance</h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div class="bg-blue-100 p-4 rounded-lg border-2 border-blue-300 shadow-md">
                                                 <p class="text-sm text-blue-700 font-medium">Time Savings (hours/year)</p>
                                                 <p class="text-2xl font-bold text-blue-900" id="potentialTimeSavings">-</p>
                                                 <p class="text-xs text-blue-600 mt-1" id="timeSavingsIncrease">-</p>
-                            </div>
+                                            </div>
                                             <div class="bg-green-100 p-4 rounded-lg border-2 border-green-300 shadow-md">
                                                 <p class="text-sm text-green-700 font-medium">Cost Savings (per year)</p>
                                                 <p class="text-2xl font-bold text-green-900" id="potentialCostSavings">-</p>
                                                 <p class="text-xs text-green-600 mt-1" id="costSavingsIncrease">-</p>
-                            </div>
+                                            </div>
                                             <div class="bg-purple-100 p-4 rounded-lg border-2 border-purple-300 shadow-md">
                                                 <p class="text-sm text-purple-700 font-medium">ROI per Agent</p>
                                                 <p class="text-2xl font-bold text-purple-900" id="potentialAgentROI">-</p>
                                                 <p class="text-xs text-purple-600 mt-1" id="agentROIIncrease">-</p>
-                            </div>
+                                            </div>
                                             <div class="bg-indigo-100 p-4 rounded-lg border-2 border-indigo-300 shadow-md">
                                                 <p class="text-sm text-indigo-700 font-medium">Organizational ROI</p>
                                                 <p class="text-2xl font-bold text-indigo-900" id="potentialOrgROI">-</p>
                                                 <p class="text-xs text-indigo-600 mt-1" id="orgROIIncrease">-</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ROI Improvement Summary -->
+                                    <div class="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border border-green-200">
+                                        <h4 class="text-lg font-semibold text-gray-900 mb-3">🚀 Automation Impact Summary</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                            <div>
+                                                <p class="font-medium text-gray-700">Time Efficiency Gain:</p>
+                                                <p class="text-lg font-bold text-green-700" id="timeEfficiencyGain">-</p>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-700">Cost Efficiency Gain:</p>
+                                                <p class="text-lg font-bold text-green-700" id="costEfficiencyGain">-</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-
-
-                </div>
-            </div>
 
                             <!-- Chart Section -->
                             <div class="bg-white rounded-lg shadow-lg p-8">
                                 <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
                                     <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                </svg>
+                                    </svg>
                                     Task Complexity vs Action Maturity Chart
                                 </h3>
                                 <p class="text-gray-600 mb-6">Visualize your tasks plotted by complexity and maturity scores</p>
@@ -553,84 +551,93 @@
                                 <div class="chart-container">
                                     <canvas id="taskScatterChart"></canvas>
                                 </div>
-                            </div>
 
-                            <!-- AI Insights Section -->
-                            <div id="ai-insights-section" class="bg-white rounded-lg shadow-lg p-8 hidden">
-                                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                                    </svg>
-                                    AI-Powered Insights
-                                </h3>
-                                <p class="text-gray-600 mb-6">Get personalized recommendations to optimize your automation ROI</p>
-                                
-                                <!-- Loading State -->
-                                <div id="insights-loading" class="flex items-center justify-center py-8 hidden">
-                                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                    <span class="ml-3 text-gray-600">Generating AI insights...</span>
-                                </div>
-                                
-                                <!-- Insights Content -->
-                                <div id="insights-content" class="space-y-4 hidden">
-                                    <!-- Dynamic insights will be populated here -->
-                                </div>
-                                
-                                <!-- Error State -->
-                                <div id="insights-error" class="bg-red-50 border border-red-200 rounded-lg p-4 hidden">
-                                    <div class="flex items-center">
-                                        <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                        <span class="text-red-800 font-medium">Unable to generate insights</span>
-                                    </div>
-                                    <p class="text-red-700 mt-2" id="insights-error-message">Please try again later.</p>
+                        <!-- Chart Legend -->
+                        <div class="mt-6 bg-gray-50 p-4 rounded-lg">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-3">ROI Quadrant Matrix Guide</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-gray-600">
+                                <div>
+                                    <p class="font-semibold mb-2">Chart Axes:</p>
+                                    <p><strong>X-axis:</strong> Action Maturity Score (1-5) →</p>
+                                    <p><strong>Y-axis:</strong> Task Complexity Score (1-5) ↑</p>
+                                    <p><strong>Data Points:</strong> 
+                                        <span class="inline-flex items-center ml-1">
+                                            <div class="w-3 h-3 rounded-full bg-purple-600 mr-1"></div>
+                                            Purple circles
+                                        </span>
+                                    </p>
+                        </div>
+                                <div>
+                                    <p class="font-semibold mb-2">Score Scale:</p>
+                                    <div class="space-y-1">
+                                        <p><strong>1</strong> = Very Low</p>
+                                        <p><strong>2</strong> = Low</p>
+                                        <p><strong>3</strong> = Medium</p>
+                                        <p><strong>4</strong> = High</p>
+                                        <p><strong>5</strong> = Very High</p>
+                    </div>
+                            </div>
+                                <div>
+                                    <p class="font-semibold mb-2">ROI Quadrants:</p>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center">
+                                            <div class="w-4 h-3 bg-red-100 border border-red-200 mr-2 rounded"></div>
+                                            <span><strong>Top-Left:</strong> Potential for Negative ROI</span>
+                            </div>
+                                        <div class="flex items-center">
+                                            <div class="w-4 h-3 bg-green-100 border border-green-200 mr-2 rounded"></div>
+                                            <span><strong>Top-Right:</strong> High ROI if Feasible</span>
+                        </div>
+                                        <div class="flex items-center">
+                                            <div class="w-4 h-3 bg-yellow-100 border border-yellow-200 mr-2 rounded"></div>
+                                            <span><strong>Bottom-Left:</strong> Limited ROI</span>
+                    </div>
+                                        <div class="flex items-center">
+                                            <div class="w-4 h-3 bg-teal-100 border border-teal-200 mr-2 rounded"></div>
+                                            <span><strong>Bottom-Right:</strong> ROI if Scalable</span>
+                </div>
+                </div>
+                                    <p class="text-xs text-gray-500 mt-3">
+                                        <strong>New tasks automatically appear</strong> when you complete Step 2
+                                    </p>
                                 </div>
                             </div>
-
+                        </div>
+                    </div>
                         </div>
                     </div>
 
-                        </div>
-                    </div>
-        </main>
-
-        <!-- Full Width Action Buttons Footer -->
-        <footer id="action-footer" class="action-buttons-footer bg-white border-t border-gray-200 py-6 mt-8 hidden">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <button id="step3-back" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200 flex items-center">
-                        <svg class="w-5 h-5 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    <!-- Action Buttons -->
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <button id="step3-back" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
+                                ← Edit Inputs
+                            </button>
+                            <button id="download-report-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
-                        Edit Inputs
-                    </button>
-                    <button id="download-report-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200 flex items-center">
-                        <svg class="w-5 h-5 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                        Download Report
-                    </button>
-                    <button id="step3-restart" class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-8 rounded-lg transition-colors duration-200 flex items-center">
-                        <svg class="w-5 h-5 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                        </svg>
-                        Calculate Another Task
-                    </button>
-                            </div>
-                            </div>
-        </footer>
+                                Download Report
+                            </button>
+                            <button id="step3-restart" class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200">
+                                Calculate Another Task
+                            </button>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
 
     <!-- Hidden PDF Report Template -->
     <div id="pdf-report-content" class="hidden pdf-container">
         <div class="pdf-page">
             <!-- PDF Header -->
             <div class="pdf-header">
-                <h1 class="pdf-title">ROI 7: licensed to quantify<sup>™</sup> Analysis Report</h1>
+                <h1 class="pdf-title">AI Agent ROI Analysis Report</h1>
                 <p class="pdf-subtitle">Automation Potential Assessment</p>
                 <div class="pdf-date">Generated on: <span id="pdf-generation-date"></span></div>
-                    </div>
+            </div>
 
             <!-- PDF Content -->
             <div class="pdf-content">
@@ -641,21 +648,21 @@
                         <div class="pdf-info-item">
                             <span class="pdf-label">Task Description:</span>
                             <span class="pdf-value" id="pdf-task-name"></span>
-                </div>
+                                </div>
                         <div class="pdf-info-item">
                             <span class="pdf-label">Performed By:</span>
                             <span class="pdf-value" id="pdf-task-performer"></span>
-                </div>
+                                </div>
                         <div class="pdf-info-item">
                             <span class="pdf-label">Task Complexity:</span>
                             <span class="pdf-value" id="pdf-task-complexity"></span>
-            </div>
+                                </div>
                         <div class="pdf-info-item">
                             <span class="pdf-label">Action Maturity:</span>
                             <span class="pdf-value" id="pdf-action-maturity"></span>
-    </div>
-                                </div>
-    </div>
+            </div>
+                    </div>
+                </div>
 
                 <!-- ROI Summary Section -->
                 <div class="pdf-section">
@@ -664,20 +671,20 @@
                         <div class="pdf-metric-card pdf-metric-blue">
                             <div class="pdf-metric-label">Annual Time Savings</div>
                             <div class="pdf-metric-value" id="pdf-time-savings"></div>
-                                </div>
+                        </div>
                         <div class="pdf-metric-card pdf-metric-green">
                             <div class="pdf-metric-label">Annual Cost Savings</div>
                             <div class="pdf-metric-value" id="pdf-cost-savings"></div>
-                                </div>
+                        </div>
                         <div class="pdf-metric-card pdf-metric-purple">
                             <div class="pdf-metric-label">ROI per Agent</div>
                             <div class="pdf-metric-value" id="pdf-agent-roi"></div>
-                                </div>
+                        </div>
                         <div class="pdf-metric-card pdf-metric-indigo">
                             <div class="pdf-metric-label">Organizational ROI</div>
                             <div class="pdf-metric-value" id="pdf-org-roi"></div>
             </div>
-            </div>
+        </div>
     </div>
 
                 <!-- Chart Section -->
@@ -689,8 +696,8 @@
                     <div class="pdf-chart-description">
                         <p>This chart visualizes the relationship between task complexity and action maturity, 
                            helping identify the automation potential and expected ROI for this task.</p>
-        </div>
-    </div>
+                    </div>
+                </div>
 
                 <!-- Recommendations Section -->
                 <div class="pdf-section">
@@ -703,7 +710,7 @@
 
             <!-- PDF Footer -->
             <div class="pdf-footer">
-                <p>This report was generated by ROI 7: licensed to quantify<sup>™</sup></p>
+                <p>This report was generated by the AI Agent ROI Calculator</p>
                 <p>For more information, visit your organization's AI automation team</p>
                                 </div>
                                 </div>

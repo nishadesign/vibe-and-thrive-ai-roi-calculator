@@ -182,8 +182,38 @@ For issues and questions:
 - Check the troubleshooting section above
 - Verify your OpenAI API key and credits
 
+## Vertex AI Gemini Integration
+
+This application now includes AI-powered insights using Google Cloud Vertex AI Gemini. After completing ROI calculations, you'll receive 2-3 actionable recommendations to optimize your automation strategy.
+
+### Setup Vertex AI
+
+1. **Enable Vertex AI API** in your Google Cloud Console
+2. **Create a service account** with Vertex AI permissions
+3. **Download the service account JSON key**
+4. **Set environment variables**:
+   ```bash
+   GOOGLE_CLOUD_PROJECT_ID=your-project-id
+   GOOGLE_CLOUD_LOCATION=us-central1
+   GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account-key.json
+   ```
+
+### Service Account Permissions
+
+Your service account needs these IAM roles:
+- `Vertex AI User` - to access Gemini models
+- `ML Developer` - for model operations
+
+### Alternative Authentication
+
+You can also authenticate using:
+- Google Cloud SDK: `gcloud auth application-default login`
+- Workload Identity (for GKE deployments)
+- Service account impersonation
+
 ## Roadmap
 
+- [x] Integration with Vertex AI Gemini for intelligent insights
 - [ ] Add more ROI calculation models
 - [ ] Export results to PDF/CSV
 - [ ] User authentication and saved calculations

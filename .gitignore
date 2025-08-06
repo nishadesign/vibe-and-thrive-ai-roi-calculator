@@ -7,6 +7,10 @@ yarn-error.log*
 # Environment variables
 .env
 
+# Google Cloud Service Account Keys
+service-account-key.json
+*.json
+
 # OS generated files
 .DS_Store
 .DS_Store?

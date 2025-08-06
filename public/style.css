@@ -248,6 +248,34 @@ html {
     box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
 }
 
+/* Organization size chip styles */
+.org-size-chip {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 14px 18px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-align: left;
+    font-size: 14px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.org-size-chip:hover {
+    border-color: #8b5cf6;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+    transform: translateY(-1px);
+}
+
+.org-size-chip.selected {
+    border-color: #8b5cf6;
+    background: #f3f4f6;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+
 /* Purple color scheme for Step 1 */
 #continue-to-details-btn:focus {
     ring-color: #8b5cf6;
@@ -255,6 +283,84 @@ html {
 
 #get-ai-suggestions-btn:focus {
     ring-color: #8b5cf6;
+}
+
+/* Chat Interface Styles */
+.chat-message {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideInFade 0.5s ease-out forwards;
+}
+
+.chat-message.system {
+    animation-delay: 0.3s;
+}
+
+.chat-message.user {
+    animation-delay: 0.1s;
+}
+
+@keyframes slideInFade {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Typing Dots Animation */
+.typing-dot {
+    animation: typingBounce 1.4s infinite ease-in-out;
+}
+
+@keyframes typingBounce {
+    0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Option Button Styles */
+.option-button {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 20px;
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.option-button:hover {
+    border-color: #8b5cf6;
+    background-color: #f3f4f6;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+}
+
+.option-button:active {
+    transform: translateY(0);
+}
+
+/* Chat Container Scrolling */
+#chat-container {
+    scroll-behavior: smooth;
+}
+
+/* Mobile Responsive Chat */
+@media (max-width: 640px) {
+    .option-button {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    
+    #chat-container {
+        height: 24rem; /* Shorter on mobile */
+    }
 }
 
 #proceed-to-step2-btn:focus {
@@ -548,5 +654,214 @@ html {
     
     .chart-container {
         height: 300px;
+    }
+}
+
+/* Step 3 Two-Column Layout Responsive Design */
+@media (max-width: 767px) {
+    .grid.grid-cols-1.md\\:grid-cols-3 {
+        display: block;
+    }
+    
+    .grid.grid-cols-1.md\\:grid-cols-3 > div:first-child {
+        margin-bottom: 1.5rem;
+    }
+}
+
+/* Step 3 Form Styling */
+#step3Form input,
+#step3Form select {
+    transition: all 0.2s ease-in-out;
+}
+
+#step3Form input:focus,
+#step3Form select:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+/* Real-time update indicator */
+.updating {
+    opacity: 0.7;
+    transition: opacity 0.2s ease-in-out;
+}
+
+/* Chart container responsive sizing */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+@media (min-width: 1024px) {
+    .chart-container {
+        height: 400px;
+    }
+}
+
+/* Action Buttons Footer Styling */
+.action-buttons-footer {
+    position: relative;
+    z-index: 10;
+    width: 100vw;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.action-buttons-footer button {
+    min-width: 180px;
+    transition: all 0.2s ease-in-out;
+    font-weight: 600;
+}
+
+.action-buttons-footer button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.action-buttons-footer button:active {
+    transform: translateY(0);
+}
+
+/* Full width footer container */
+#action-footer {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-top: 2px solid #e2e8f0;
+}
+
+/* Enhanced button spacing for full width */
+.action-buttons-footer .flex {
+    gap: 2rem;
+}
+
+/* Mobile responsive for action buttons */
+@media (max-width: 640px) {
+    .action-buttons-footer .flex {
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+    }
+    
+    .action-buttons-footer button {
+        width: 100%;
+        justify-content: center;
+        min-width: auto;
+    }
+}
+
+/* Enhanced visual hierarchy for footer buttons */
+@media (min-width: 641px) {
+    .action-buttons-footer button {
+        min-width: 200px;
+    }
+}
+
+/* AI Insights Section Animations and Styling */
+#ai-insights-section {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s ease-in-out;
+}
+
+#ai-insights-section.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Individual insight items with staggered animation */
+.insight-item {
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all 0.4s ease-in-out;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-left: 4px solid #3b82f6;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    text-align: left;
+}
+
+.insight-item.animate {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Staggered animation delays */
+.insight-item:nth-child(1) { transition-delay: 0.1s; }
+.insight-item:nth-child(2) { transition-delay: 0.2s; }
+.insight-item:nth-child(3) { transition-delay: 0.3s; }
+
+/* Insight content styling */
+.insight-title {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    text-align: left;
+}
+
+.insight-title::before {
+    content: "💡";
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.insight-description {
+    color: #4b5563;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    text-align: left;
+}
+
+/* Loading animation enhancement */
+#insights-loading .animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Hover effects for insights */
+.insight-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+}
+
+/* Fade-in animation for section */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ai-insights-fade-in {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+/* Responsive adjustments for insights */
+@media (max-width: 768px) {
+    .insight-item {
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .insight-title {
+        font-size: 1rem;
+    }
+    
+    .insight-description {
+        font-size: 0.9rem;
     }
 } 

@@ -41,7 +41,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
     initializeModals();
     initializeChart();
-    initializeConversationalStep1(); // Initialize the conversational interface
     initializePDFDownload(); // Initialize PDF download functionality
     updateProgressIndicator();
 });
@@ -60,9 +59,9 @@ function initializeDOM() {
     step2Indicator = document.getElementById('step2-indicator');
     step3Indicator = document.getElementById('step3-indicator');
     
-    // Step 1 elements (conversational interface)
-    taskNameInput = document.getElementById('taskNameInput'); // Updated to match new conversational textarea
-    taskPerformerSelect = document.getElementById('taskPerformer'); // This doesn't exist in conversational mode, but kept for fallback
+    // Step 1 elements
+    taskNameInput = document.getElementById('taskName');
+    taskPerformerSelect = document.getElementById('taskPerformer');
     step1NextBtn = document.getElementById('step1-next');
     
     // Step 2 elements
@@ -78,8 +77,10 @@ function initializeDOM() {
  * Initialize event listeners for the wizard
  */
 function initializeEventListeners() {
-    // Step 1 - Task Identification (conversational mode handles its own validation)
-    // Traditional form validation only for fallback mode
+    // Step 1 - Task Identification
+    if (taskNameInput) {
+        taskNameInput.addEventListener('input', validateStep1);
+    }
     if (taskPerformerSelect) {
         taskPerformerSelect.addEventListener('change', validateStep1);
     }
@@ -87,13 +88,28 @@ function initializeEventListeners() {
         step1NextBtn.addEventListener('click', goToStep2);
     }
     
+    // AI Writing Assistant
+    initializeAIWritingAssistant();
+    
     // Step 2 - ROI Input
     step2BackBtn.addEventListener('click', goToStep1);
     step2NextBtn.addEventListener('click', goToStep3);
     
     // Step 2 form validation
-    const step2Fields = ['taskFrequency', 'medianTime', 'taskComplexityScore', 'currentActionMaturityScore', 'hourlyRate', 'numSellers'];
-    step2Fields.forEach(fieldId => {
+    const step2RequiredFields = ['taskFrequency', 'medianTime', 'taskComplexityScore', 'currentActionMaturityScore'];
+    const step2OptionalFields = ['hourlyRate', 'numSellers', 'devCost', 'maintenanceCost'];
+    
+    // Add listeners for required fields
+    step2RequiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', validateStep2);
+            field.addEventListener('change', validateStep2);
+        }
+    });
+    
+    // Add listeners for optional fields (only validate if they have values)
+    step2OptionalFields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (field) {
             field.addEventListener('input', validateStep2);
@@ -110,12 +126,6 @@ function initializeEventListeners() {
  * Step 1: Validate task identification fields
  */
 function validateStep1() {
-    // In conversational mode, validation is handled differently
-    if (conversationState.isComplete) {
-        return true;
-    }
-    
-    // Fallback validation for traditional form mode (if elements exist)
     if (!taskNameInput || !taskPerformerSelect || !step1NextBtn) {
         return false;
     }
@@ -133,16 +143,29 @@ function validateStep1() {
  * Step 2: Validate ROI input fields
  */
 function validateStep2() {
+    // Required fields (time and complexity/maturity are required)
     const requiredFields = [
         'taskFrequency', 'medianTime', 'taskComplexityScore', 
-        'currentActionMaturityScore', 'hourlyRate', 'numSellers'
+        'currentActionMaturityScore'
     ];
     
     let isValid = true;
     
+    // Check required fields
     for (const fieldId of requiredFields) {
         const field = document.getElementById(fieldId);
         if (!field || !field.value || field.value <= 0) {
+            isValid = false;
+            break;
+        }
+    }
+    
+    // Optional cost fields - validate if provided
+    const optionalFields = ['hourlyRate', 'numSellers', 'devCost', 'maintenanceCost'];
+    
+    for (const fieldId of optionalFields) {
+        const field = document.getElementById(fieldId);
+        if (field && field.value && (isNaN(field.value) || field.value < 0)) {
             isValid = false;
             break;
         }
@@ -165,26 +188,30 @@ function goToStep1() {
  * Navigate to Step 2
  */
 function goToStep2() {
-    // Use conversational data if available, otherwise fall back to form validation
-    if (conversationState.isComplete) {
-        // Store conversational Step 1 data
-        wizardData.taskName = conversationState.taskName;
-        wizardData.taskPerformer = conversationState.taskPerformer;
-    } else {
-        if (!validateStep1()) return;
-        
-        // Store traditional form Step 1 data
-        wizardData.taskName = taskNameInput.value.trim();
-        wizardData.taskPerformer = taskPerformerSelect.value;
-    }
+    if (!validateStep1()) return;
+    
+    // Store Step 1 data
+    wizardData.taskName = taskNameInput.value.trim();
+    wizardData.taskPerformer = taskPerformerSelect.value;
+    wizardData.organizationSize = document.getElementById('organizationSize').value || 'Not specified';
     
     // Update Step 2 summary
     document.getElementById('taskSummary').textContent = wizardData.taskName;
     document.getElementById('performerSummary').textContent = wizardData.taskPerformer;
+    document.getElementById('organizationSummary').textContent = wizardData.organizationSize;
+    
+    // Remove any existing default values notice when moving to Step 2
+    const existingNote = document.querySelector('#default-values-note');
+    if (existingNote) {
+        existingNote.remove();
+    }
     
     currentStep = 2;
     showStep(2);
     updateProgressIndicator();
+    
+    // Pre-populate Step 2 fields based on task description
+    prePopulateStep2Fields();
 }
 
 /**
@@ -195,6 +222,9 @@ function goToStep3() {
     
     // Store Step 2 data
     collectStep2Data();
+    
+    // Populate Step 3 editable inputs
+    populateStep3Inputs();
     
     // Calculate ROI
     const results = calculateROI();
@@ -211,7 +241,27 @@ function goToStep3() {
     
     currentStep = 3;
     showStep(3);
+    
+    // Initialize Step 3 real-time updates
+    initializeStep3Updates();
     updateProgressIndicator();
+    
+    // Generate AI insights after ROI calculation completes
+    // Add a delay to allow UI to settle before triggering insights
+    setTimeout(() => {
+        generateAIInsights(wizardData.taskName, {
+            taskFrequency: wizardData.taskFrequency,
+            frequencyUnit: wizardData.frequencyUnit,
+            medianTime: wizardData.medianTime,
+            complexityScore: wizardData.taskComplexityScore,
+            maturityScore: wizardData.currentActionMaturityScore,
+            currentROI: results.current,
+            potentialROI: results.potential,
+            timeSavings: results.potential.timeSavingsHours,
+            costSavings: results.potential.costSavings,
+            agentROI: results.potential.agentROI
+        });
+    }, 1000);
 }
 
 /**
@@ -237,8 +287,127 @@ function restartWizard() {
     document.getElementById('devCost').value = '';
     document.getElementById('maintenanceCost').value = '';
     
+    // Remove any existing default values notice
+    const existingNote = document.querySelector('#default-values-note');
+    if (existingNote) {
+        existingNote.remove();
+    }
+    
+    // Hide AI insights section
+    hideAIInsights();
+    
     // Go back to step 1
     goToStep1();
+}
+
+/**
+ * Populate Step 3 inputs with current wizard data
+ */
+function populateStep3Inputs() {
+    // Populate basic task fields
+    document.getElementById('step3TaskFrequency').value = wizardData.taskFrequency || '';
+    document.getElementById('step3FrequencyUnit').value = wizardData.frequencyUnit || 'per day';
+    document.getElementById('step3MedianTime').value = wizardData.medianTime || '';
+    document.getElementById('step3TaskComplexityScore').value = wizardData.taskComplexityScore || '';
+    document.getElementById('step3CurrentActionMaturityScore').value = wizardData.currentActionMaturityScore || '';
+    
+    // Populate cost fields
+    document.getElementById('step3HourlyRate').value = wizardData.hourlyRate || '';
+    document.getElementById('step3NumSellers').value = wizardData.numSellers || '';
+    document.getElementById('step3DevCost').value = wizardData.devCost || '';
+    document.getElementById('step3MaintenanceCost').value = wizardData.maintenanceCost || '';
+}
+
+/**
+ * Initialize Step 3 real-time updates
+ */
+function initializeStep3Updates() {
+    // Get all Step 3 input elements
+    const step3Inputs = [
+        'step3TaskFrequency', 'step3FrequencyUnit', 'step3MedianTime',
+        'step3TaskComplexityScore', 'step3CurrentActionMaturityScore',
+        'step3HourlyRate', 'step3NumSellers', 'step3DevCost', 'step3MaintenanceCost'
+    ];
+    
+    // Add event listeners for real-time updates
+    step3Inputs.forEach(inputId => {
+        const element = document.getElementById(inputId);
+        if (element) {
+            element.addEventListener('input', handleStep3InputChange);
+            element.addEventListener('change', handleStep3InputChange);
+        }
+    });
+}
+
+/**
+ * Handle input changes in Step 3 for real-time updates
+ */
+function handleStep3InputChange() {
+    // Update wizard data from Step 3 inputs
+    updateWizardDataFromStep3();
+    
+    // Recalculate and update results
+    const results = calculateROI();
+    currentROIData = { ...wizardData, ...results };
+    
+    // Update display
+    displayResults(results);
+    
+    // Update chart
+    updateTaskInChart(wizardData, results);
+}
+
+/**
+ * Update wizard data from Step 3 inputs
+ */
+function updateWizardDataFromStep3() {
+    // Update basic task fields
+    wizardData.taskFrequency = parseFloat(document.getElementById('step3TaskFrequency').value) || 0;
+    wizardData.frequencyUnit = document.getElementById('step3FrequencyUnit').value || 'per day';
+    wizardData.medianTime = parseFloat(document.getElementById('step3MedianTime').value) || 0;
+    wizardData.taskComplexityScore = document.getElementById('step3TaskComplexityScore').value || '';
+    wizardData.currentActionMaturityScore = document.getElementById('step3CurrentActionMaturityScore').value || '';
+    
+    // Update cost fields
+    wizardData.hourlyRate = parseFloat(document.getElementById('step3HourlyRate').value) || 0;
+    wizardData.numSellers = parseFloat(document.getElementById('step3NumSellers').value) || 0;
+    wizardData.devCost = parseFloat(document.getElementById('step3DevCost').value) || 0;
+    wizardData.maintenanceCost = parseFloat(document.getElementById('step3MaintenanceCost').value) || 0;
+}
+
+/**
+ * Update task in chart (replace existing point with new values)
+ */
+function updateTaskInChart(taskData, roiData) {
+    if (!taskChart || !taskChart.data.datasets[0].data.length) {
+        // If no existing data, add new point
+        addTaskToChart(taskData, roiData);
+        return;
+    }
+    
+    // Get complexity and maturity scores
+    const complexityMap = { 'Very Low': 1, 'Low': 2, 'Medium': 3, 'High': 4, 'Very High': 5 };
+    const complexityScore = complexityMap[taskData.taskComplexityScore] || 3;
+    const maturityScore = complexityMap[taskData.currentActionMaturityScore] || 3;
+    
+    // Update the last (most recent) data point
+    const dataIndex = taskChart.data.datasets[0].data.length - 1;
+    if (dataIndex >= 0) {
+        taskChart.data.datasets[0].data[dataIndex] = {
+            x: maturityScore,
+            y: complexityScore,
+            timeSavings: roiData.potential.timeSavingsHours,
+            costSavings: roiData.potential.costSavings,
+            roi: roiData.potential.agentROI
+        };
+        
+        // Update visual properties
+        const pointSize = Math.max(5, Math.min(15, roiData.potential.agentROI / 100));
+        taskChart.data.datasets[0].pointRadius[dataIndex] = pointSize;
+        taskChart.data.datasets[0].pointHoverRadius[dataIndex] = pointSize + 2;
+        
+        taskChart.update('none');
+    }
 }
 
 /**
@@ -250,16 +419,22 @@ function showStep(stepNumber) {
     step2.classList.add('hidden');
     step3.classList.add('hidden');
     
+    // Get footer element
+    const actionFooter = document.getElementById('action-footer');
+    
     // Show current step
     switch(stepNumber) {
         case 1:
             step1.classList.remove('hidden');
+            actionFooter.classList.add('hidden');
             break;
         case 2:
             step2.classList.remove('hidden');
+            actionFooter.classList.add('hidden');
             break;
         case 3:
             step3.classList.remove('hidden');
+            actionFooter.classList.remove('hidden');
             break;
     }
 }
@@ -303,177 +478,639 @@ function updateProgressIndicator() {
 // =============================================================================
 
 /**
- * Conversation state for Step 1
+ * Chat conversation state for Step 1
  */
-let conversationState = {
+let chatState = {
     taskName: '',
     taskPerformer: '',
-    currentQuestion: 1, // 1 = task name, 2 = role selection
+    organizationSize: '',
+    currentStep: 0, // 0 = welcome, 1 = task question, 2 = role question, 3 = org size question, 4 = complete
     isComplete: false
 };
 
 /**
- * Initialize conversational Step 1 interface
- * Sets up the chat-style conversation flow for task identification
+ * Initialize the new chat interface for Step 1
+ * Sets up event listeners and manages the conversation flow
  */
-function initializeConversationalStep1() {
-    const taskInput = document.getElementById('taskNameInput');
-    const continueBtn = document.getElementById('continue-to-details-btn');
-    const aiSuggestionsBtn = document.getElementById('get-ai-suggestions-btn');
+function initializeChatInterface() {
+    const startChatBtn = document.getElementById('start-chat-btn');
+    const sendTextBtn = document.getElementById('send-text-btn');
+    const chatTextInput = document.getElementById('chat-text-input');
     const proceedBtn = document.getElementById('proceed-to-step2-btn');
     
-    // Get all conversation elements
-    const initialQuestion = document.getElementById('initial-question');
-    const taskInputCard = document.getElementById('task-input-card');
-    const userTaskResponse = document.getElementById('user-task-response');
-    const systemFollowup = document.getElementById('system-followup');
-    const userRoleResponse = document.getElementById('user-role-response');
-    const systemCompletion = document.getElementById('system-completion');
-    const downArrow = document.getElementById('down-arrow');
+    // Start conversation when user clicks start button
+    startChatBtn.addEventListener('click', startConversation);
     
-    // Skip initialization if already complete
-    if (conversationState.isComplete) {
-        return;
-    }
-    
-    // Enable continue button when user types
-    taskInput.addEventListener('input', () => {
-        const hasText = taskInput.value.trim().length > 0;
-        continueBtn.disabled = !hasText;
+    // Enable send button when user types
+    chatTextInput.addEventListener('input', () => {
+        const hasText = chatTextInput.value.trim().length > 0;
+        sendTextBtn.disabled = !hasText;
     });
     
-    // Handle Enter key in textarea
-    taskInput.addEventListener('keydown', (e) => {
+    // Handle Enter key in textarea (send message)
+    chatTextInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            if (!continueBtn.disabled) {
-                handleContinueToDetails();
+            if (!sendTextBtn.disabled) {
+                handleTextResponse();
             }
         }
     });
     
-    // Handle continue to details button
-    continueBtn.addEventListener('click', handleContinueToDetails);
-    
-    // Handle AI suggestions button
-    aiSuggestionsBtn.addEventListener('click', handleAISuggestions);
-    
-    // Handle role selection
-    document.querySelectorAll('.role-chip').forEach(chip => {
-        chip.addEventListener('click', () => handleRoleSelection(chip));
-    });
+    // Handle send button click
+    sendTextBtn.addEventListener('click', handleTextResponse);
     
     // Handle proceed to step 2 button
     if (proceedBtn) {
         proceedBtn.addEventListener('click', () => {
-            conversationState.isComplete = true;
+            chatState.isComplete = true;
             goToStep2();
         });
     }
+}
+
+/**
+ * Start the conversation by hiding welcome screen and showing first question
+ */
+function startConversation() {
+    hideWelcomeScreen();
     
-    /**
-     * Handle continue to details button click
-     * Shows user's task response and system follow-up
-     */
-    function handleContinueToDetails() {
-        const taskValue = taskInput.value.trim();
-        if (!taskValue) return;
-        
-        // Store the task name
-        conversationState.taskName = taskValue;
-        
-        // Start the conversation animation sequence
-        startConversationFlow(taskValue);
-    }
-    
-    /**
-     * Handle AI suggestions button click
-     * This could integrate with OpenAI API to suggest task ideas
-     */
-    function handleAISuggestions() {
-        // For now, just populate with a sample task
-        taskInput.value = "I need help drafting personalized sales emails to potential customers based on their company information and our product offerings...";
-        
-        // Enable the continue button
-        continueBtn.disabled = false;
-        
-        // Add a subtle animation to draw attention
-        taskInput.classList.add('ring-2', 'ring-purple-300');
-        setTimeout(() => {
-            taskInput.classList.remove('ring-2', 'ring-purple-300');
-        }, 2000);
-        
-        // Store the suggested task
-        conversationState.taskName = taskInput.value.trim();
-    }
-    
-    /**
-     * Start the conversation flow animation
-     * @param {string} taskValue - The user's task description
-     */
-    function startConversationFlow(taskValue) {
-        // 1. Fade out initial elements
-        initialQuestion.classList.add('conversation-transition', 'fade-out');
-        downArrow.classList.add('conversation-transition', 'fade-out');
+    // Show typing indicator then first question
+    setTimeout(() => {
+        showTypingIndicator();
         
         setTimeout(() => {
-            initialQuestion.style.display = 'none';
-            downArrow.style.display = 'none';
+            hideTypingIndicator();
+            addSystemMessage("What task do you want to automate?", "Please describe the specific process or workflow you'd like to improve with AI automation.");
+            showTextInput();
+            chatState.currentStep = 1;
+        }, 1500); // Show typing for 1.5 seconds
+    }, 300);
+}
+
+/**
+ * Handle text response from user
+ */
+function handleTextResponse() {
+    const input = document.getElementById('chat-text-input');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Add user message to chat
+    addUserMessage(message);
+    
+    // Store response and proceed to next step
+    if (chatState.currentStep === 1) {
+        chatState.taskName = message;
+        hideTextInput();
+        
+        // Show typing indicator then role question
+        setTimeout(() => {
+            showTypingIndicator();
             
-            // 2. Show user's task response
-            document.getElementById('user-task-text').textContent = taskValue;
-            userTaskResponse.classList.remove('hidden');
-            userTaskResponse.classList.add('conversation-element');
-            
-            // 3. Hide the input card after a moment
             setTimeout(() => {
-                taskInputCard.classList.add('conversation-transition', 'fade-out');
-                setTimeout(() => {
-                    taskInputCard.style.display = 'none';
-                    
-                    // 4. Show system follow-up question
-                    systemFollowup.classList.remove('hidden');
-                    systemFollowup.classList.add('conversation-element', 'delay-1');
-                }, 400);
-            }, 800);
-        }, 400);
+                hideTypingIndicator();
+                addSystemMessage("Great! Now, who typically performs this task in your organization?", "Select the role that best describes who usually handles this work:");
+                showRoleOptions();
+                chatState.currentStep = 2;
+            }, 1200);
+        }, 800);
     }
     
-    /**
-     * Handle role selection
-     * Shows user's role response and completion message
-     */
-    function handleRoleSelection(selectedChip) {
-        const role = selectedChip.dataset.role;
+    // Clear input
+    input.value = '';
+    document.getElementById('send-text-btn').disabled = true;
+}
+
+/**
+ * Handle role selection
+ */
+function handleRoleSelection(role) {
+    chatState.taskPerformer = role;
+    
+    // Add user's role choice as a message
+    addUserMessage(role);
+    hideOptionButtons();
+    
+    // Show typing indicator then organization size question
+    setTimeout(() => {
+        showTypingIndicator();
         
-        // Store the role
-        conversationState.taskPerformer = role;
+        setTimeout(() => {
+            hideTypingIndicator();
+            addSystemMessage("What is your organization size?", "This helps us customize the ROI calculations for your specific context:");
+            showOrgSizeOptions();
+            chatState.currentStep = 3;
+        }, 1200);
+    }, 800);
+}
+
+/**
+ * Handle organization size selection
+ */
+function handleOrgSizeSelection(orgSize) {
+    chatState.organizationSize = orgSize;
+    
+    // Add user's org size choice as a message
+    addUserMessage(orgSize);
+    hideOptionButtons();
+    
+    // Show typing indicator then completion message
+    setTimeout(() => {
+        showTypingIndicator();
         
-        // Visual feedback for selection
-        document.querySelectorAll('.role-chip').forEach(chip => {
-            chip.classList.remove('selected');
+        setTimeout(() => {
+            hideTypingIndicator();
+            addSystemMessage("Perfect! I have all the information I need.", "Let's move on to calculating the ROI details for your task.");
+            showFinalCTA();
+            chatState.currentStep = 4;
+            chatState.isComplete = true;
+        }, 1200);
+    }, 800);
+}
+
+/**
+ * Add a system message to the chat
+ */
+function addSystemMessage(title, subtitle = '') {
+    const chatMessages = document.getElementById('chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'chat-message system';
+    
+    messageDiv.innerHTML = `
+        <div class="flex justify-start">
+            <div class="bg-white rounded-2xl px-6 py-4 max-w-2xl shadow-sm border border-gray-200">
+                <p class="text-lg text-gray-800 font-medium">${title}</p>
+                ${subtitle ? `<p class="text-gray-600 mt-2">${subtitle}</p>` : ''}
+            </div>
+        </div>
+    `;
+    
+    chatMessages.appendChild(messageDiv);
+    scrollToBottom();
+}
+
+/**
+ * Add a user message to the chat
+ */
+function addUserMessage(message) {
+    const chatMessages = document.getElementById('chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'chat-message user';
+    
+    messageDiv.innerHTML = `
+        <div class="flex justify-end">
+            <div class="bg-purple-600 text-white rounded-2xl px-6 py-4 max-w-2xl shadow-sm">
+                <p class="text-lg">${message}</p>
+            </div>
+        </div>
+    `;
+    
+    chatMessages.appendChild(messageDiv);
+    scrollToBottom();
+}
+
+/**
+ * Show role selection options
+ */
+function showRoleOptions() {
+    const roles = [
+        'Sales Representatives',
+        'Customer Support',
+        'Marketing Team',
+        'Data Analysts',
+        'Content Writers',
+        'Admin Staff',
+        'Developers',
+        'HR Personnel',
+        'Finance Team',
+        'Operations Team',
+        'Other'
+    ];
+    
+    showOptionButtons(roles, handleRoleSelection);
+}
+
+/**
+ * Show organization size options
+ */
+function showOrgSizeOptions() {
+    const orgSizes = [
+        '1–10 employees',
+        '11–50 employees', 
+        '51–200 employees',
+        '201–500 employees',
+        '500+ employees'
+    ];
+    
+    showOptionButtons(orgSizes, handleOrgSizeSelection);
+}
+
+/**
+ * Generic function to show option buttons
+ */
+function showOptionButtons(options, clickHandler) {
+    const container = document.getElementById('option-buttons-container');
+    const buttonsContainer = document.getElementById('option-buttons');
+    
+    // Clear existing buttons
+    buttonsContainer.innerHTML = '';
+    
+    // Create buttons for each option
+    options.forEach(option => {
+        const button = document.createElement('button');
+        button.className = 'option-button';
+        button.textContent = option;
+        button.addEventListener('click', () => clickHandler(option));
+        buttonsContainer.appendChild(button);
+    });
+    
+    container.classList.remove('hidden');
+}
+
+/**
+ * Utility functions for managing UI states
+ */
+function hideWelcomeScreen() {
+    document.getElementById('welcome-screen').classList.add('hidden');
+}
+
+function showTextInput() {
+    document.getElementById('text-input-container').classList.remove('hidden');
+    document.getElementById('chat-text-input').focus();
+}
+
+function hideTextInput() {
+    document.getElementById('text-input-container').classList.add('hidden');
+}
+
+function hideOptionButtons() {
+    document.getElementById('option-buttons-container').classList.add('hidden');
+}
+
+function showFinalCTA() {
+    document.getElementById('final-cta-container').classList.remove('hidden');
+}
+
+function showTypingIndicator() {
+    document.getElementById('typing-indicator').classList.remove('hidden');
+    scrollToBottom();
+}
+
+function hideTypingIndicator() {
+    document.getElementById('typing-indicator').classList.add('hidden');
+}
+
+function scrollToBottom() {
+    const chatContainer = document.getElementById('chat-container');
+    setTimeout(() => {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }, 100);
+}
+
+// =============================================================================
+// AI WRITING ASSISTANT
+// =============================================================================
+
+/**
+ * Initialize AI Writing Assistant functionality
+ */
+function initializeAIWritingAssistant() {
+    const aiWritingBtn = document.getElementById('ai-writing-btn');
+    const aiModal = document.getElementById('ai-writing-modal');
+    const closeAiModal = document.getElementById('close-ai-modal');
+    const cancelAiModal = document.getElementById('cancel-ai-modal');
+    const aiPrompt = document.getElementById('ai-prompt');
+    const generateBtn = document.getElementById('generate-ai-description');
+    const useDescriptionBtn = document.getElementById('use-ai-description');
+    const aiSuggestions = document.getElementById('ai-suggestions');
+    const aiGeneratedText = document.getElementById('ai-generated-text');
+    const aiLoading = document.getElementById('ai-loading');
+    
+    // Open AI Writing Modal
+    if (aiWritingBtn) {
+        aiWritingBtn.addEventListener('click', () => {
+            aiModal.classList.remove('hidden');
+            aiPrompt.focus();
         });
-        selectedChip.classList.add('selected');
-        
-        // Continue conversation flow
-        setTimeout(() => {
-            // Show user's role response
-            document.getElementById('user-role-text').textContent = role;
-            userRoleResponse.classList.remove('hidden');
-            userRoleResponse.classList.add('conversation-element');
+    }
+    
+    // Close AI Writing Modal
+    function closeModal() {
+        aiModal.classList.add('hidden');
+        aiPrompt.value = '';
+        aiSuggestions.classList.add('hidden');
+        useDescriptionBtn.classList.add('hidden');
+        generateBtn.disabled = true;
+    }
+    
+    if (closeAiModal) {
+        closeAiModal.addEventListener('click', closeModal);
+    }
+    
+    if (cancelAiModal) {
+        cancelAiModal.addEventListener('click', closeModal);
+    }
+    
+    // Close modal when clicking outside
+    aiModal.addEventListener('click', (e) => {
+        if (e.target === aiModal) {
+            closeModal();
+        }
+    });
+    
+    // Enable/disable generate button based on input
+    if (aiPrompt) {
+        aiPrompt.addEventListener('input', () => {
+            const hasText = aiPrompt.value.trim().length > 0;
+            generateBtn.disabled = !hasText;
+        });
+    }
+    
+    // Generate AI description
+    if (generateBtn) {
+        generateBtn.addEventListener('click', async () => {
+            const prompt = aiPrompt.value.trim();
+            if (!prompt) return;
             
-            // Hide the system follow-up after a moment
-            setTimeout(() => {
-                systemFollowup.classList.add('conversation-transition', 'fade-out');
-                setTimeout(() => {
-                    systemFollowup.style.display = 'none';
-                    
-                    // Show completion message
-                    systemCompletion.classList.remove('hidden');
-                    systemCompletion.classList.add('conversation-element', 'delay-1');
-                }, 400);
-            }, 800);
-        }, 300);
+            // Show loading state
+            aiLoading.classList.remove('hidden');
+            generateBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: `Help me write a detailed task description for ROI calculation. Based on this brief description: "${prompt}". 
+                        
+                        Please provide a clear, detailed description of the task that includes:
+                        - What the task involves
+                        - The key steps or processes
+                        - What kind of output or result is expected
+                        - Any relevant context about timing or frequency
+                        
+                        Write it as a professional task description suitable for ROI analysis. Keep it concise but comprehensive.`
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.response) {
+                    // Show AI generated text
+                    aiGeneratedText.textContent = data.response;
+                    aiSuggestions.classList.remove('hidden');
+                    useDescriptionBtn.classList.remove('hidden');
+                } else {
+                    throw new Error(data.error || 'Failed to generate description');
+                }
+            } catch (error) {
+                console.error('Error generating AI description:', error);
+                alert('Sorry, there was an error generating the description. Please try again or write your task description manually.');
+            } finally {
+                // Hide loading state
+                aiLoading.classList.add('hidden');
+                generateBtn.disabled = false;
+            }
+        });
+    }
+    
+    // Use AI generated description
+    if (useDescriptionBtn) {
+        useDescriptionBtn.addEventListener('click', () => {
+            const generatedText = aiGeneratedText.textContent;
+            if (generatedText && taskNameInput) {
+                taskNameInput.value = generatedText;
+                validateStep1(); // Trigger validation to enable next button
+                closeModal();
+            }
+        });
+    }
+}
+
+/**
+ * Pre-populate Step 2 fields based on task description from Step 1
+ */
+async function prePopulateStep2Fields() {
+    const taskDescription = wizardData.taskName;
+    const taskPerformer = wizardData.taskPerformer;
+    const orgSize = wizardData.organizationSize;
+    
+    if (!taskDescription) return;
+    
+    // Show loading indicator
+    showStep2LoadingState();
+    
+    try {
+        const response = await fetch('/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: `Based on this task description: "${taskDescription}", performed by: "${taskPerformer}", in a "${orgSize}" organization, please help me estimate the following values for ROI calculation:
+
+1. Task Frequency: How often is this task typically performed? (provide a number and unit: per day/week/month/year)
+2. Time per Task: How many minutes does this task typically take to complete manually?
+3. Task Complexity: Rate the complexity (Very Low, Low, Medium, High, Very High) based on cognitive load, decision-making required, and skill level needed
+4. Action Maturity: Rate how ready this type of task is for AI automation (Very Low, Low, Medium, High, Very High) based on how well-defined, repetitive, and rule-based it is
+
+Please respond in this exact JSON format:
+{
+  "taskFrequency": number,
+  "frequencyUnit": "per day|per week|per month|per year",
+  "timePerTask": number,
+  "taskComplexity": "Very Low|Low|Medium|High|Very High",
+  "actionMaturity": "Very Low|Low|Medium|High|Very High",
+  "reasoning": "Brief explanation of your estimates"
+}
+
+Focus on realistic, industry-standard estimates for this type of work.`
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.response) {
+            try {
+                // Try to parse JSON from AI response
+                const jsonMatch = data.response.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const estimates = JSON.parse(jsonMatch[0]);
+                    populateStep2Fields(estimates);
+                } else {
+                    // Fallback: parse from plain text response
+                    parseAIResponseAndPopulate(data.response);
+                }
+            } catch (parseError) {
+                console.log('Could not parse AI response as JSON, using fallback values');
+                useDefaultEstimates();
+            }
+        } else {
+            useDefaultEstimates();
+        }
+    } catch (error) {
+        console.error('Error getting AI estimates:', error);
+        useDefaultEstimates();
+    } finally {
+        hideStep2LoadingState();
+    }
+}
+
+/**
+ * Show loading state for Step 2 pre-population
+ */
+function showStep2LoadingState() {
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'step2-loading';
+    loadingDiv.className = 'fixed top-0 left-0 right-0 bg-blue-100 border-b border-blue-200 p-3 z-40';
+    loadingDiv.innerHTML = `
+        <div class="max-w-4xl mx-auto flex items-center justify-center">
+            <svg class="animate-spin h-5 w-5 text-blue-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-blue-700">AI is analyzing your task and pre-filling estimates...</span>
+        </div>
+    `;
+    document.body.insertBefore(loadingDiv, document.body.firstChild);
+}
+
+/**
+ * Hide loading state for Step 2 pre-population
+ */
+function hideStep2LoadingState() {
+    const loadingDiv = document.getElementById('step2-loading');
+    if (loadingDiv) {
+        loadingDiv.remove();
+    }
+}
+
+/**
+ * Populate Step 2 fields with AI estimates
+ */
+function populateStep2Fields(estimates) {
+    // Set task frequency
+    if (estimates.taskFrequency) {
+        document.getElementById('taskFrequency').value = estimates.taskFrequency;
+    }
+    
+    // Set frequency unit
+    if (estimates.frequencyUnit) {
+        document.getElementById('frequencyUnit').value = estimates.frequencyUnit;
+    }
+    
+    // Set time per task
+    if (estimates.timePerTask) {
+        document.getElementById('medianTime').value = estimates.timePerTask;
+    }
+    
+    // Set task complexity
+    if (estimates.taskComplexity) {
+        document.getElementById('taskComplexityScore').value = estimates.taskComplexity;
+    }
+    
+    // Set action maturity
+    if (estimates.actionMaturity) {
+        document.getElementById('currentActionMaturityScore').value = estimates.actionMaturity;
+    }
+    
+    // Show a notification about pre-population
+    showPrePopulationNotification(estimates.reasoning || 'Values have been estimated based on your task description.');
+    
+    // Trigger validation to update UI
+    validateStep2();
+}
+
+/**
+ * Parse AI response and populate fields (fallback method)
+ */
+function parseAIResponseAndPopulate(response) {
+    // Simple parsing for common patterns
+    const estimates = {};
+    
+    // Look for frequency patterns
+    const freqMatch = response.match(/(\d+)\s*(per\s+(?:day|week|month|year))/i);
+    if (freqMatch) {
+        estimates.taskFrequency = parseInt(freqMatch[1]);
+        estimates.frequencyUnit = freqMatch[2].toLowerCase();
+    }
+    
+    // Look for time patterns
+    const timeMatch = response.match(/(\d+)\s*minutes?/i);
+    if (timeMatch) {
+        estimates.timePerTask = parseInt(timeMatch[1]);
+    }
+    
+    // Look for complexity
+    const complexityMatch = response.match(/(very\s+low|low|medium|high|very\s+high).*complexity/i);
+    if (complexityMatch) {
+        estimates.taskComplexity = complexityMatch[1].replace(/\s+/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+    
+    // Look for maturity
+    const maturityMatch = response.match(/(very\s+low|low|medium|high|very\s+high).*(?:maturity|automation)/i);
+    if (maturityMatch) {
+        estimates.actionMaturity = maturityMatch[1].replace(/\s+/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+    
+    if (Object.keys(estimates).length > 0) {
+        populateStep2Fields(estimates);
+    } else {
+        useDefaultEstimates();
+    }
+}
+
+/**
+ * Use default estimates when AI estimation fails
+ */
+function useDefaultEstimates() {
+    const defaults = {
+        taskFrequency: 5,
+        frequencyUnit: 'per day',
+        timePerTask: 15,
+        taskComplexity: 'Medium',
+        actionMaturity: 'Medium',
+        reasoning: 'Using default estimates. Please review and adjust as needed.'
+    };
+    
+    populateStep2Fields(defaults);
+}
+
+/**
+ * Show notification about pre-population
+ */
+function showPrePopulationNotification(reasoning) {
+    const notification = document.createElement('div');
+    notification.className = 'bg-green-50 border border-green-200 rounded-lg p-4 mb-6';
+    notification.innerHTML = `
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-green-600 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <h4 class="text-sm font-medium text-green-900">Fields Pre-populated by AI</h4>
+                <p class="text-sm text-green-800 mt-1">
+                    ${reasoning} Please review and adjust these estimates as needed for accuracy.
+                </p>
+            </div>
+        </div>
+    `;
+    
+    // Insert after the task summary
+    const taskSummary = document.querySelector('#step2 .bg-blue-50');
+    if (taskSummary) {
+        taskSummary.parentNode.insertBefore(notification, taskSummary.nextSibling);
+        
+        // Remove notification after 10 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 10000);
     }
 }
 
@@ -486,10 +1123,12 @@ function collectStep2Data() {
     wizardData.medianTime = parseFloat(document.getElementById('medianTime').value);
     wizardData.taskComplexityScore = document.getElementById('taskComplexityScore').value;
     wizardData.currentActionMaturityScore = document.getElementById('currentActionMaturityScore').value;
-    wizardData.hourlyRate = parseFloat(document.getElementById('hourlyRate').value);
-    wizardData.numSellers = parseFloat(document.getElementById('numSellers').value);
-    wizardData.devCost = parseFloat(document.getElementById('devCost').value) || 0;
-    wizardData.maintenanceCost = parseFloat(document.getElementById('maintenanceCost').value) || 0;
+    
+    // Optional cost fields with default values
+    wizardData.hourlyRate = parseFloat(document.getElementById('hourlyRate').value) || 50; // Default $50/hour
+    wizardData.numSellers = parseFloat(document.getElementById('numSellers').value) || 1; // Default 1 person
+    wizardData.devCost = parseFloat(document.getElementById('devCost').value) || 0; // Default $0
+    wizardData.maintenanceCost = parseFloat(document.getElementById('maintenanceCost').value) || 0; // Default $0
 }
 
 /**
@@ -601,6 +1240,19 @@ function convertToAnnual(frequency, unit) {
  * Display calculation results for both current and potential scenarios
  */
 function displayResults(results) {
+    // Check if default values were used
+    const hourlyRateInput = document.getElementById('hourlyRate');
+    const numSellersInput = document.getElementById('numSellers');
+    const devCostInput = document.getElementById('devCost');
+    const maintenanceCostInput = document.getElementById('maintenanceCost');
+    
+    const usedDefaults = {
+        hourlyRate: !hourlyRateInput || !hourlyRateInput.value,
+        numSellers: !numSellersInput || !numSellersInput.value,
+        devCost: !devCostInput || !devCostInput.value,
+        maintenanceCost: !maintenanceCostInput || !maintenanceCostInput.value
+    };
+    
     // Current Performance Results
     document.getElementById('currentTimeSavings').textContent = results.current.timeSavings.toLocaleString();
     document.getElementById('currentCostSavings').textContent = `$${results.current.costSavings.toLocaleString()}`;
@@ -633,6 +1285,39 @@ function displayResults(results) {
         `${results.efficiencyGains.current}% → ${results.efficiencyGains.potential}% efficiency`;
     document.getElementById('costEfficiencyGain').textContent = 
         `$${results.improvements.costSavings.toLocaleString()} additional annual savings`;
+    
+    // Show default values note if any defaults were used (only once)
+    const defaultValuesUsed = Object.values(usedDefaults).some(used => used);
+    if (defaultValuesUsed) {
+        // Check if the notification already exists
+        const existingNote = document.querySelector('#default-values-note');
+        if (!existingNote) {
+            const defaultNote = document.createElement('div');
+            defaultNote.id = 'default-values-note';
+            defaultNote.className = 'bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4';
+            defaultNote.innerHTML = `
+                <div class="flex items-start">
+                    <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div>
+                        <h4 class="text-sm font-medium text-blue-900">Default Values Used</h4>
+                        <p class="text-sm text-blue-800 mt-1">
+                            Some cost information was not provided, so we used default values: 
+                            ${usedDefaults.hourlyRate ? '$50/hour' : ''}${usedDefaults.hourlyRate && usedDefaults.numSellers ? ', ' : ''}${usedDefaults.numSellers ? '1 person' : ''}${(usedDefaults.hourlyRate || usedDefaults.numSellers) && (usedDefaults.devCost || usedDefaults.maintenanceCost) ? ', ' : ''}${usedDefaults.devCost ? '$0 development cost' : ''}${usedDefaults.devCost && usedDefaults.maintenanceCost ? ', ' : ''}${usedDefaults.maintenanceCost ? '$0 maintenance cost' : ''}.
+                            <br><span class="font-medium">For more accurate results, please provide your actual cost information in Step 2.</span>
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            // Insert the note after the ROI results section
+            const roiResultsSection = document.querySelector('#step3 .bg-white.rounded-lg.shadow-lg.p-8');
+            if (roiResultsSection) {
+                roiResultsSection.appendChild(defaultNote);
+            }
+        }
+    }
 }
 
 /**
@@ -663,10 +1348,118 @@ function hideError() {
 // =============================================================================
 
 /**
- * Initialize the scatter chart
+ * Custom Chart.js plugin to draw ROI quadrant backgrounds and labels
+ * This plugin renders colored quadrants before the scatter points are drawn
+ */
+const roiQuadrantPlugin = {
+    id: 'roiQuadrantPlugin',
+    beforeDatasetsDraw: function(chart) {
+        const { ctx, chartArea: { left, top, right, bottom }, scales: { x, y } } = chart;
+        
+        // Save the current context state
+        ctx.save();
+        
+        // Define quadrant boundaries (split at 3.0 for both axes)
+        const xMid = x.getPixelForValue(3.0);
+        const yMid = y.getPixelForValue(3.0);
+        
+        // Define quadrant colors with transparency
+        const quadrantColors = {
+            topLeft: 'rgba(239, 68, 68, 0.1)',     // Light red - Potential for Negative ROI
+            topRight: 'rgba(34, 197, 94, 0.15)',   // Light green - High ROI if Feasible
+            bottomLeft: 'rgba(251, 191, 36, 0.1)', // Light yellow - Limited ROI
+            bottomRight: 'rgba(20, 184, 166, 0.1)' // Light teal - ROI if Scalable
+        };
+        
+        // Draw quadrant backgrounds
+        // Top-left quadrant (High Complexity, Low Maturity)
+        ctx.fillStyle = quadrantColors.topLeft;
+        ctx.fillRect(left, top, xMid - left, yMid - top);
+        
+        // Top-right quadrant (High Complexity, High Maturity)
+        ctx.fillStyle = quadrantColors.topRight;
+        ctx.fillRect(xMid, top, right - xMid, yMid - top);
+        
+        // Bottom-left quadrant (Low Complexity, Low Maturity)
+        ctx.fillStyle = quadrantColors.bottomLeft;
+        ctx.fillRect(left, yMid, xMid - left, bottom - yMid);
+        
+        // Bottom-right quadrant (Low Complexity, High Maturity)
+        ctx.fillStyle = quadrantColors.bottomRight;
+        ctx.fillRect(xMid, yMid, right - xMid, bottom - yMid);
+        
+        // Add quadrant labels
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Calculate label positions (center of each quadrant)
+        const labelPositions = {
+            topLeft: { x: left + (xMid - left) / 2, y: top + (yMid - top) / 2 },
+            topRight: { x: xMid + (right - xMid) / 2, y: top + (yMid - top) / 2 },
+            bottomLeft: { x: left + (xMid - left) / 2, y: yMid + (bottom - yMid) / 2 },
+            bottomRight: { x: xMid + (right - xMid) / 2, y: yMid + (bottom - yMid) / 2 }
+        };
+        
+        // Draw quadrant labels with background
+        const labels = {
+            topLeft: 'Potential for\nNegative ROI',
+            topRight: 'High ROI\nif Feasible',
+            bottomLeft: 'Limited ROI',
+            bottomRight: 'ROI if\nScalable'
+        };
+        
+        Object.keys(labels).forEach(quadrant => {
+            const pos = labelPositions[quadrant];
+            const lines = labels[quadrant].split('\n');
+            
+            // Semi-transparent white background for readability
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            const textHeight = lines.length * 16;
+            const textWidth = Math.max(...lines.map(line => ctx.measureText(line).width)) + 12;
+            ctx.fillRect(pos.x - textWidth/2, pos.y - textHeight/2, textWidth, textHeight);
+            
+            // Draw text lines
+            ctx.fillStyle = 'rgba(55, 65, 81, 0.8)'; // Gray-700 with transparency
+            lines.forEach((line, index) => {
+                const lineY = pos.y - (lines.length - 1) * 8 + index * 16;
+                ctx.fillText(line, pos.x, lineY);
+            });
+        });
+        
+        // Draw quadrant divider lines
+        ctx.strokeStyle = 'rgba(156, 163, 175, 0.5)'; // Gray-400 with transparency
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]); // Dashed lines
+        
+        // Vertical divider line
+        ctx.beginPath();
+        ctx.moveTo(xMid, top);
+        ctx.lineTo(xMid, bottom);
+        ctx.stroke();
+        
+        // Horizontal divider line
+        ctx.beginPath();
+        ctx.moveTo(left, yMid);
+        ctx.lineTo(right, yMid);
+        ctx.stroke();
+        
+        // Reset line dash
+        ctx.setLineDash([]);
+        
+        // Restore the context state
+        ctx.restore();
+    }
+};
+
+/**
+ * Initialize the scatter chart with ROI quadrant matrix
  */
 function initializeChart() {
     const ctx = document.getElementById('taskScatterChart').getContext('2d');
+    
+    // Register the custom quadrant plugin
+    Chart.register(roiQuadrantPlugin);
     
     taskChart = new Chart(ctx, {
         type: 'scatter',
@@ -691,14 +1484,39 @@ function initializeChart() {
                     max: 5.5,
                     title: {
                         display: true,
-                        text: 'Action Maturity Score'
+                        text: 'Action Maturity Score →',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
                     },
                     ticks: {
                         stepSize: 1,
+                        min: 1,
+                        max: 5,
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        },
+                        color: '#374151',
                         callback: function(value) {
-                            const labels = ['', 'Very Low', 'Low', 'Medium', 'High', 'Very High'];
-                            return labels[value] || value;
+                            if (value >= 1 && value <= 5 && value % 1 === 0) {
+                                const labels = {
+                                    1: 'Very Low',
+                                    2: 'Low', 
+                                    3: 'Medium',
+                                    4: 'High',
+                                    5: 'Very High'
+                                };
+                                return labels[value];
+                            }
+                            return '';
                         }
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(156, 163, 175, 0.3)',
+                        lineWidth: 1
                     }
                 },
                 y: {
@@ -706,14 +1524,39 @@ function initializeChart() {
                     max: 5.5,
                     title: {
                         display: true,
-                        text: 'Task Complexity Score'
+                        text: '↑ Task Complexity Score',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
                     },
                     ticks: {
                         stepSize: 1,
+                        min: 1,
+                        max: 5,
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        },
+                        color: '#374151',
                         callback: function(value) {
-                            const labels = ['', 'Very Low', 'Low', 'Medium', 'High', 'Very High'];
-                            return labels[value] || value;
+                            if (value >= 1 && value <= 5 && value % 1 === 0) {
+                                const labels = {
+                                    1: 'Very Low',
+                                    2: 'Low', 
+                                    3: 'Medium',
+                                    4: 'High',
+                                    5: 'Very High'
+                                };
+                                return labels[value];
+                            }
+                            return '';
                         }
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(156, 163, 175, 0.3)',
+                        lineWidth: 1
                     }
                 }
             },
@@ -723,10 +1566,9 @@ function initializeChart() {
                         label: function(context) {
                             const dataPoint = taskDataPoints[context.dataIndex];
                             return [
-                                `Task: ${dataPoint.taskName}`,
-                                `ROI: ${dataPoint.agentROI}%`,
                                 `Time Savings: ${dataPoint.timeSavings} hours/year`,
-                                `Cost Savings: $${dataPoint.costSavings.toLocaleString()}`
+                                `Cost Savings: $${dataPoint.costSavings.toLocaleString()}`,
+                                `ROI: ${dataPoint.agentROI}%`
                             ];
                         }
                     }
@@ -741,9 +1583,10 @@ function initializeChart() {
 
 /**
  * Add task data point to chart
+ * New points are added dynamically when users complete Step 2
  */
 function addTaskToChart(formData, results) {
-    // Convert qualitative scores to numeric values
+    // Convert qualitative scores to numeric values for plotting
     const qualitativeToNumeric = {
         'Very Low': 1, 'Low': 2, 'Medium': 3, 'High': 4, 'Very High': 5
     };
@@ -751,34 +1594,33 @@ function addTaskToChart(formData, results) {
     const maturityScore = qualitativeToNumeric[formData.currentActionMaturityScore];
     const complexityScore = qualitativeToNumeric[formData.taskComplexityScore];
     
-    // Create data point
+    // Create data point for the quadrant matrix
     const dataPoint = {
         x: maturityScore,
         y: complexityScore,
         taskName: formData.taskName,
-        agentROI: results.agentROI,
-        timeSavings: results.timeSavings,
-        costSavings: results.costSavings
+        agentROI: results.potential.agentROI || results.agentROI, // Use potential ROI if available
+        timeSavings: results.potential.timeSavings || results.timeSavings,
+        costSavings: results.potential.costSavings || results.costSavings
     };
     
     // Store data point for tooltip reference
     taskDataPoints.push(dataPoint);
     
-    // Determine point color based on ROI
-    const pointColor = getROIColor(results.agentROI);
-    
-    // Determine point size based on time savings (normalized between 5-20)
-    const pointSize = Math.max(5, Math.min(20, (results.timeSavings / 1000) * 10 + 5));
+    // Use distinct purple styling for all points as requested
+    const pointColor = 'rgba(147, 51, 234, 0.8)';      // Purple color
+    const borderColor = 'rgba(147, 51, 234, 1)';       // Solid purple border
+    const pointRadius = 8;                              // Fixed radius as requested
     
     // Add to chart dataset
     taskChart.data.datasets[0].data.push(dataPoint);
     taskChart.data.datasets[0].backgroundColor.push(pointColor);
-    taskChart.data.datasets[0].borderColor.push(pointColor);
-    taskChart.data.datasets[0].pointRadius.push(pointSize);
-    taskChart.data.datasets[0].pointHoverRadius.push(pointSize + 3);
+    taskChart.data.datasets[0].borderColor.push(borderColor);
+    taskChart.data.datasets[0].pointRadius.push(pointRadius);
+    taskChart.data.datasets[0].pointHoverRadius.push(pointRadius + 3);
     
-    // Update chart
-    taskChart.update();
+    // Update chart to show new point
+    taskChart.update('none'); // 'none' for no animation for better performance
 }
 
 /**
@@ -1541,14 +2383,19 @@ async function createPDFChart() {
     // Optimize chart options for PDF
     chartOptions.responsive = false;
     chartOptions.maintainAspectRatio = false;
-    chartOptions.plugins.title.font = { size: 16, weight: 'bold' };
+    chartOptions.plugins.title = {
+        display: true,
+        text: 'Task Complexity vs Action Maturity Matrix',
+        font: { size: 16, weight: 'bold' }
+    };
     chartOptions.animation = false; // Disable animations for PDF
 
-    // Create the PDF chart
+    // Create the PDF chart with quadrant plugin
     pdfChart = new Chart(ctx, {
         type: 'scatter',
         data: chartData,
-        options: chartOptions
+        options: chartOptions,
+        plugins: [roiQuadrantPlugin] // Include the quadrant background plugin
     });
 
     // Wait for chart to render
@@ -1703,4 +2550,245 @@ function hideSuccess() {
     if (successEl) {
         successEl.classList.add('hidden');
     }
+}
+
+// ============================================================================
+// AI INSIGHTS INTEGRATION WITH VERTEX AI GEMINI
+// ============================================================================
+
+/**
+ * Generate AI insights after ROI calculation completes
+ * Calls Vertex AI Gemini to provide actionable automation recommendations
+ * @param {string} taskName - The name of the task being automated
+ * @param {Object} roiSummary - Summary of ROI calculation results
+ */
+async function generateAIInsights(taskName, roiSummary) {
+    const insightsSection = document.getElementById('ai-insights-section');
+    const loadingEl = document.getElementById('insights-loading');
+    const contentEl = document.getElementById('insights-content');
+    const errorEl = document.getElementById('insights-error');
+    
+    try {
+        // Show insights section with fade-in animation
+        insightsSection.classList.remove('hidden');
+        insightsSection.classList.add('ai-insights-fade-in');
+        
+        // Show loading state
+        loadingEl.classList.remove('hidden');
+        contentEl.classList.add('hidden');
+        errorEl.classList.add('hidden');
+        
+        // Smooth scroll to insights section
+        setTimeout(() => {
+            insightsSection.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }, 200);
+        
+        // Call backend endpoint for AI insights
+        const response = await fetch('/ai-insights', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                taskName: taskName,
+                roiSummary: roiSummary
+            })
+        });
+        
+        if (!response.ok) {
+            // If Vertex AI has any issues, show demo insights as fallback
+            if (response.status === 500) {
+                try {
+                    const errorData = await response.json();
+                    console.log('Vertex AI error detected, showing demo insights:', errorData.error);
+                    loadingEl.classList.add('hidden');
+                    displayDemoInsights(taskName);
+                    return;
+                } catch (e) {
+                    console.log('Error parsing server response, showing demo insights');
+                    loadingEl.classList.add('hidden');
+                    displayDemoInsights(taskName);
+                    return;
+                }
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Hide loading and display insights with animations
+        loadingEl.classList.add('hidden');
+        displayInsights(data.insights);
+        
+        // Apply smooth show animation
+        setTimeout(() => {
+            insightsSection.classList.add('show');
+        }, 100);
+        
+    } catch (error) {
+        console.error('Error generating AI insights:', error);
+        
+        // Instead of showing an error, show demo insights as fallback
+        console.log('Falling back to demo insights due to error');
+        loadingEl.classList.add('hidden');
+        displayDemoInsights(taskName);
+    }
+}
+
+/**
+ * Display AI-generated insights with smooth animations
+ * @param {string} insights - Raw insights text from Gemini
+ */
+function displayInsights(insights) {
+    const contentEl = document.getElementById('insights-content');
+    
+    // Parse insights text into individual items (assuming numbered format)
+    const insightItems = parseInsightsText(insights);
+    
+    // Clear existing content
+    contentEl.innerHTML = '';
+    
+    // Create insight elements with staggered animations
+    insightItems.forEach((insight, index) => {
+        const insightEl = document.createElement('div');
+        insightEl.className = 'insight-item';
+        insightEl.innerHTML = `
+            <div class="insight-title">${insight.title}</div>
+            <div class="insight-description">${insight.description}</div>
+        `;
+        
+        contentEl.appendChild(insightEl);
+        
+        // Apply staggered animation
+        setTimeout(() => {
+            insightEl.classList.add('animate');
+        }, (index + 1) * 150);
+    });
+    
+    // Show content container
+    contentEl.classList.remove('hidden');
+}
+
+/**
+ * Parse insights text into structured format
+ * @param {string} insightsText - Raw text from Gemini
+ * @returns {Array} Array of insight objects with title and description
+ */
+function parseInsightsText(insightsText) {
+    const insights = [];
+    
+    // Helper function to clean markdown formatting
+    const cleanMarkdown = (text) => {
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '$1') // Remove **bold** formatting
+            .replace(/\*(.*?)\*/g, '$1')     // Remove *italic* formatting
+            .trim();
+    };
+    
+    // Split by numbered items (1., 2., 3., etc.)
+    const sections = insightsText.split(/\d+\.\s+/).filter(section => section.trim());
+    
+    sections.forEach((section, index) => {
+        const lines = section.trim().split('\n').filter(line => line.trim());
+        
+        if (lines.length > 0) {
+            // First line is usually the title/action
+            const title = cleanMarkdown(lines[0].trim());
+            // Remaining lines are the description
+            const description = cleanMarkdown(lines.slice(1).join(' ').trim()) || title;
+            
+            insights.push({
+                title: title,
+                description: description
+            });
+        }
+    });
+    
+    // Fallback parsing if numbered format doesn't work
+    if (insights.length === 0) {
+        const lines = insightsText.split('\n').filter(line => line.trim());
+        const chunks = [];
+        let currentChunk = [];
+        
+        lines.forEach(line => {
+            if (line.match(/^[•\-\*]/) || line.match(/^\d+/) || currentChunk.length === 0) {
+                if (currentChunk.length > 0) {
+                    chunks.push(currentChunk.join(' '));
+                }
+                currentChunk = [line.replace(/^[•\-\*\d\.\s]+/, '')];
+            } else {
+                currentChunk.push(line);
+            }
+        });
+        
+        if (currentChunk.length > 0) {
+            chunks.push(currentChunk.join(' '));
+        }
+        
+        chunks.forEach(chunk => {
+            const sentences = chunk.split('. ');
+            if (sentences.length > 0) {
+                insights.push({
+                    title: cleanMarkdown(sentences[0] + (sentences[0].endsWith('.') ? '' : '.')),
+                    description: cleanMarkdown(sentences.slice(1).join('. '))
+                });
+            }
+        });
+    }
+    
+    return insights.slice(0, 3); // Limit to 3 insights max
+}
+
+/**
+ * Show error state for AI insights
+ * @param {string} errorMessage - Error message to display
+ */
+function showInsightsError(errorMessage) {
+    const errorEl = document.getElementById('insights-error');
+    const errorMessageEl = document.getElementById('insights-error-message');
+    
+    // Set error message
+    errorMessageEl.textContent = errorMessage || 'Unable to generate insights at this time.';
+    
+    // Show error state
+    errorEl.classList.remove('hidden');
+}
+
+/**
+ * Display demo insights when Vertex AI is not available
+ * @param {string} taskName - The name of the task being automated
+ */
+function displayDemoInsights(taskName) {
+    const demoInsights = `1. **Optimize Process Timing**: Consider implementing ${taskName} during off-peak hours to reduce system load and improve processing speed by 15-20%.
+
+2. **Implement Batch Processing**: Group similar tasks together to maximize efficiency gains. This approach could increase your ROI by an additional 25-30% through reduced overhead.
+
+3. **Monitor and Iterate**: Set up automated tracking metrics to continuously optimize your ${taskName} automation. Regular performance reviews can identify new improvement opportunities worth 10-15% additional savings.
+
+*Note: These are demo insights. Configure Vertex AI for personalized recommendations.*`;
+
+    // Ensure the section is visible
+    const insightsSection = document.getElementById('ai-insights-section');
+    insightsSection.classList.remove('hidden');
+    
+    // Display the insights
+    displayInsights(demoInsights);
+    
+    // Apply smooth show animation
+    setTimeout(() => {
+        insightsSection.classList.add('show');
+        insightsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+}
+
+/**
+ * Hide AI insights section
+ */
+function hideAIInsights() {
+    const insightsSection = document.getElementById('ai-insights-section');
+    insightsSection.classList.add('hidden');
+    insightsSection.classList.remove('show', 'ai-insights-fade-in');
 }

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const OpenAI = require('openai');
+const { VertexAI } = require('@google-cloud/vertexai');
 require('dotenv').config();
 
 const app = express();
@@ -15,6 +16,31 @@ app.use(express.static('public'));
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+// Initialize Vertex AI (only if configured)
+let vertexAI = null;
+let generativeModel = null;
+
+if (process.env.GOOGLE_CLOUD_PROJECT_ID) {
+  try {
+    vertexAI = new VertexAI({
+      project: process.env.GOOGLE_CLOUD_PROJECT_ID,
+      location: process.env.GOOGLE_CLOUD_LOCATION || 'us-central1',
+    });
+
+    // Initialize the Gemini model
+    const model = 'gemini-pro';
+    generativeModel = vertexAI.preview.getGenerativeModel({
+      model: model,
+    });
+    console.log('Vertex AI Gemini initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize Vertex AI:', error.message);
+    console.log('AI insights will not be available. Please check your Vertex AI configuration.');
+  }
+} else {
+  console.log('Vertex AI not configured - AI insights will not be available');
+}
 
 // Chat endpoint
 app.post('/chat', async (req, res) => {
@@ -88,6 +114,79 @@ Provide helpful, accurate, and actionable advice. If the user provides ROI calcu
   }
 });
 
+// AI Insights endpoint - Generate actionable insights using Vertex AI Gemini
+app.post('/ai-insights', async (req, res) => {
+  try {
+    const { taskName, roiSummary } = req.body;
+
+    // Validate required fields
+    if (!taskName || !roiSummary) {
+      return res.status(400).json({ 
+        error: 'taskName and roiSummary are required' 
+      });
+    }
+
+    // Check if Vertex AI is configured and initialized
+    if (!generativeModel) {
+      console.error('Vertex AI Gemini not initialized');
+      return res.status(500).json({ 
+        error: 'Vertex AI not configured. Please check your Google Cloud configuration and ensure GOOGLE_CLOUD_PROJECT_ID and service account credentials are properly set.' 
+      });
+    }
+
+    // Create a comprehensive prompt for Gemini to generate actionable insights
+    const prompt = `As an AI automation expert, analyze this ROI calculation and provide 2-3 highly actionable insights to improve automation ROI:
+
+Task: ${taskName}
+
+ROI Summary:
+${JSON.stringify(roiSummary, null, 2)}
+
+Please provide specific, actionable recommendations that focus on:
+1. Optimization opportunities to increase ROI
+2. Implementation strategies to maximize efficiency gains
+3. Risk mitigation and best practices
+
+Format your response as clear, numbered insights (2-3 maximum). Each insight should be:
+- Specific and actionable
+- Directly related to the task and ROI data
+- Focused on practical improvements
+- Concise but informative (2-3 sentences each)
+
+Begin each insight with a strong action verb and focus on measurable improvements.`;
+
+    // Generate content using Gemini
+    const result = await generativeModel.generateContent(prompt);
+    const response = await result.response;
+    const insights = response.text();
+
+    // Return the insights
+    res.json({ 
+      insights,
+      taskName,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Vertex AI Gemini Error:', error);
+    
+    let errorMessage = 'Failed to generate AI insights';
+    
+    if (error.code === 'PERMISSION_DENIED') {
+      errorMessage = 'Permission denied. Please check your Google Cloud credentials and project configuration.';
+    } else if (error.code === 'QUOTA_EXCEEDED') {
+      errorMessage = 'Vertex AI quota exceeded. Please check your billing settings.';
+    } else if (error.code === 'UNAVAILABLE') {
+      errorMessage = 'Vertex AI service is temporarily unavailable. Please try again in a moment.';
+    }
+    
+    res.status(500).json({ 
+      error: errorMessage,
+      details: error.message 
+    });
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
@@ -101,4 +200,6 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
   console.log(`OpenAI API Key configured: ${process.env.OPENAI_API_KEY ? 'Yes' : 'No'}`);
+  console.log(`Vertex AI Project configured: ${process.env.GOOGLE_CLOUD_PROJECT_ID ? 'Yes' : 'No'}`);
+  console.log(`Vertex AI Gemini available: ${generativeModel ? 'Yes' : 'No'}`);
 }); 
